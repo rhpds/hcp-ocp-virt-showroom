@@ -1,6 +1,6 @@
 ---
 site:
-  title: OpenShift on OpenShift with Virtualization and Hosted Control Planes
+  title: Using Hosted Control Planes for OpenShift on OpenShift
   start_page: modules::index.adoc
 
 content:

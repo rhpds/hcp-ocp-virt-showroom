@@ -1,12 +1,12 @@
 name: modules
-title: OpenShift on OpenShift with Virtualization and Hosted Control Planes
+title: Using Hosted Control Planes for OpenShift on OpenShift
 version: master
 nav:
 - modules/ROOT/nav.adoc
 
 asciidoc:
   attributes:
-    lab_name: OpenShift on OpenShift with Virtualization and Hosted Control Planes
+    lab_name: Using Hosted Control Planes for OpenShift on OpenShift
     release-version: master
     page-pagination: true
     experimental: true
