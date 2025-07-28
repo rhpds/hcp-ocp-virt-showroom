@@ -14,7 +14,7 @@ As resources are consumed in the hosted cluster, the hosting cluster responds to
 == Deploy an Application to your Hosted Cluster
 
 . On the *my-hosted-cluster* administration console, change to Developer perspective.
-[arabic]
+[loweralpha]
 .. Click on *Administrator* on the left-side menu.
 .. From the drop-down menu select *Developer*.
 +
@@ -22,47 +22,47 @@ image::scale/switch_dev_view.png[link=self, window=blank, width=50%]
 
 . The *Topology* screen shows a list of the projects in the cluster.
 Create a new project from the *Add* page.
-[arabic]
+[loweralpha]
 .. To create an application, click on *+Add* on the left-side menu.
 .. Click the link to *create a Project* near the top of the page.
 +
 image::scale/add_menu.png[link=self, window=blank, width=50%]
 
 . The *Create-Project* window appears.
-[arabic]
+[loweralpha]
 .. Enter project name: `apache-webserver`
 .. Click the *Create* button.
 +
 image::scale/create_project.png[link=self, window=blank, width=50%]
 
 . When the project is created, the screen will enter it and see a number of ways to deploy an application.
-[arabic]
+[loweralpha]
 .. Under the *Developer Catalog* section, click on *All services*.
 +
 image::scale/apache_webserver_project.png[link=self, window=blank, width=100%]
 
 . In the *Developer Catalog*.
-[arabic]
+[loweralpha]
 .. Use the *search bar* to search for the term `apache`
 .. Select the *Apache HTTP Server* template that appears.
 +
 image::scale/developer_catalog.png[link=self, window=blank, width=100%]
 
 . After clicking on the template a window describing the template will appear.
-[arabic]
+[loweralpha]
 .. Click the blue button named *Instantiate Template*.
 +
 image::scale/instantiate_template.png[link=self, window=blank, width=50%]
 
 . A form pops up.
-[arabic]
+[loweralpha]
 .. Set the *Name* of the application to *my-httpd*.
 .. Click on the blue *Create* button at the bottom of the page.
 +
 image::scale/my_httpd.png[link=self, window=blank, width=100%]
 
 . The pod will begin to build and there will be an instance of *my-httpd* in the center of the page.
-[arabic]
+[loweralpha]
 .. *Click on the circle* to see information about the application as it builds.
 .. Click on *Resources*
 .. Note that the *Build running* message appears.
@@ -71,14 +71,14 @@ image::scale/my_httpd.png[link=self, window=blank, width=100%]
 image::scale/my_httpd_route.png[link=self, window=blank, width=100%]
 
 . The *Route details* page appears, where route settings are as expected.
-[arabic]
+[loweralpha]
 .. Click the *Actions* menu in the upper right corner.
 .. Select *Edit Route* from the drop down menu.
 +
 image::scale/route_details.png[link=self, window=blank, width=100%]
 
 . On the Route Edit page.
-[arabic]
+[loweralpha]
 .. Make sure that the *Target port* value is set to *8080-->8080*
 .. *Secure Route* box is checked.
 .. *TLS termination* set to *Edge*.
@@ -89,13 +89,13 @@ In 4.17 versions of OpenShift, the *Save* button is replaced by *Edit*.
 image::scale/edit_route.png[link=self, window=blank, width=100%]
 
 . Back on the *Route details* page.
-[arabic]
+[loweralpha]
 .. Click the URL found under *Location*
 +
 image::scale/redirect_url.png[link=self, window=blank, width=50%]
 
 . This will open a new tab with the Apache test page for our *my-httpd* app.
-[arabic]
+[loweralpha]
 .. *Close this tab* when you are done with it.
 +
 image::scale/apache_test_page.png[link=self, window=blank, width=100%]
@@ -108,20 +108,20 @@ Now that the application is deployed and running, set up autoscaling.
 If autoscaling is not already enabled, it must be enabled
 
 . Enable autoscaling.
-[arabic]
+[loweralpha]
 .. Click on the tab to return to the *hosting cluster*, and return to the *Cluster node pools* section.
 .. Observe that there are still just two nodes in *my-node-pool*, but also see that *Autoscaling* is set to *False*.
 +
 image::scale/cluster_node_pools.png[link=self, window=blank, width=100%]
 
 . Use the Terminal in the lab instructions user interface.
-[arabic]
+[loweralpha]
 .. SSH to the bastion host once again if needed.
 +
 image::scale/ssh_bastion.png[link=self, window=blank, width=100%]
 
 . To enable Autoscaling for *my-node-pool*, disable the static replica count and enable autoscaling.
-[arabic]
+[loweralpha]
 .. Copy and paste the following syntax, and press the enter key.
 +
 [source,sh,role=execute,subs="attributes"]
@@ -132,7 +132,7 @@ oc -n clusters patch nodepool my-node-pool --type=json -p '[{"op": "remove", "pa
 image::scale/enable_autoscaling.png[link=self, window=blank, width=100%]
 
 . View the pod details.
-[arabic]
+[loweralpha]
 .. Return to the tab where the application is currently running.
 .. Click on *Topology* to view the app.
 .. Click on *Details* on the right to view the pod details.
@@ -140,7 +140,7 @@ image::scale/enable_autoscaling.png[link=self, window=blank, width=100%]
 image::scale/my_httpd_pod_details.png[link=self, window=blank, width=100%]
 
 . Apply pressure to the current cluster resources.
-[arabic]
+[loweralpha]
 .. Use the toggle on the right side, scale the application up to 10 instances.
 +
 image::scale/scale_application.png[link=self, window=blank, width=100%]
@@ -151,33 +151,33 @@ In this case there are seven running instances and three pending pods with no re
 image::scale/out_of_resources.png[link=self, window=blank, width=100%]
 
 . Observe the size of the node pool updating on the *hosting cluster*.
-[arabic]
+[loweralpha]
 .. Return to the tab that shows the information for the *hosting cluster*.
 +
 image::scale/node_pool_update.png[link=self, window=blank, width=100%]
 
 . While waiting for the autoscale action to complete, which can take about 10 minutes, visit the *local-cluster* to see the *VirtualMachines*.
-[arabic]
+[loweralpha]
 .. Return to the *local-cluster* tab.
 .. Click on left-side menu for *Virtualization* and *VirtualMachines* to see the newly added third machine.
 +
 image::scale/new_vm.png[link=self, window=blank, width=100%]
 
 . Observe that it has completed updating, and status is *Ready*.
-[arabic]
+[loweralpha]
 .. Returning to the *All Clusters* window and reviewing the *my-node-pool*.
 +
 image::scale/nodepool_autoscale_ready.png[link=self, window=blank, width=100%]
 
 . Virtual Machines that are part of the node pool become part of the OpenShift cluster by being adopted as nodes.
 Observe that three OpenShift nodes are part of the pool.
-[arabic]
+[loweralpha]
 .. Click on the *Nodes* tab at the top.
 +
 image::scale/nodes_menu.png[link=self, window=blank, width=100%]
 
 . Check the *my-httpd* application and verify that all desired replicas have now been deployed.
-[arabic]
+[loweralpha]
 .. Click on the tab to the *hosted cluster*
 .. Check the *my-httpd* application for *pending replicas.*
 .. Note that there are now 10 replicas.
@@ -190,14 +190,14 @@ image::scale/all_app_replicas.png[link=self, window=blank, width=100%]
 Once the additional resources are no longer needed to support the application, the the number of nodes in the hosted cluster can dynamically scale back down to free up resources in the hosting cluster.
 
 . Clean up the application to free up resources.
-[arabic]
+[loweralpha]
 .. Select the *Actions* menu from the application details.
 .. From the drop-down menu select *Delete Deployment*.
 +
 image::scale/delete_deployment.png[link=self, window=blank, width=100%]
 
 . Confirm deletion of the the *my-httpd* application and all dependent objects.
-[arabic]
+[loweralpha]
 .. Click the red *Delete* button.
 +
 image::scale/confirm_delete.png[link=self, window=blank, width=100%]
@@ -207,12 +207,12 @@ image::scale/confirm_delete.png[link=self, window=blank, width=100%]
 image::scale/no_resources_found.png[link=self, window=blank, width=100%]
 
 . Return to the hosting cluster tab.
-[arabic]
+[loweralpha]
 .. Close the tab that shows the console of *my-hosted-cluster*.
 .. Return to the hosting cluster *local-cluster - Overview*.
 
 . There are still three nodes available.
-[arabic]
+[loweralpha]
 .. Click on the *Nodes* tab at the top of the screen.
 +
 image::scale/nodes_menu.png[link=self, window=blank, width=100%]
@@ -230,14 +230,14 @@ However, if your cluster had not been configured autoscaling, then it is perfect
 Follow these next steps to perform that action if necessary.
 
 . Manage the NodePool
-[arabic]
+[loweralpha]
 .. Click on the three-dot menu to the right side of the *Cluster node pools* section
 .. When the drop down menu appears click on *Manage node pool.*
 +
 image::scale/manage_node_pool.png[link=self, window=blank, width=100%]
 
 . Set number of nodes.
-[arabic]
+[loweralpha]
 .. On the menu that appears, set the number of nodes to two.
 .. Click the blue *Update* button.
 +
