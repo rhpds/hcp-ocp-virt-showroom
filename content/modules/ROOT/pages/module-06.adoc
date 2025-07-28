@@ -1,0 +1,596 @@
+= Managing Hosted Clusters using Policies
+
+A freshly deployed cluster is rather empty.
+Usually you will want at least a few operators installed and maybe authentication as well so that your users can start using the cluster.
+
+In this lab you will:
+
+* Configure authentication for the hosted cluster using htpasswd
+* Deploy the following operators to your hosted cluster
+** OpenShift Pipelines
+** OpenShift GitOps
+** OpenShift Serverless
+
+Especially deploying the *OpenShift GitOps* operator is a good idea because it can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
+
+== Set up a ClusterSet
+
+It is a good practice to add hosted clusters to a `ClusterSet`. This is useful to configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
+
+In this lab you will create *development* clusters - so our `ClusterSet` will be named *development*.
+
+. Allow the admin users to manage the clusters:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: open-cluster-management:subscription-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: open-cluster-management:subscription-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: system:admin
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: admin
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: kubeadmin
+EOF
+----
+
+. Create a namespace for the Submariner Broker to run.
++
+[source,sh,role=execute]
+----
+oc create namespace development-broker
+----
+
+. Create a namespace to host the policies for the *development* `ManagedClusterSet`:
++
+[source,sh,role=execute]
+----
+oc create namespace development-policies
+----
+
+. Create the `ManagedClusterSet`
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSet
+metadata:
+  annotations:
+    cluster.open-cluster-management.io/submariner-broker-ns: development-broker
+  finalizers:
+  - cluster.open-cluster-management.io/managedclusterset-clusterrole
+  - cluster.open-cluster-management.io/submariner-cleanup
+  name: development
+spec:
+  clusterSelector:
+    selectorType: ExclusiveClusterSetLabel
+EOF
+----
+
+. Create a `ManagedClusterSetBinding`:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding
+metadata:
+  name: development
+  namespace: development-policies
+spec:
+  clusterSet: development
+EOF
+----
+
+. Finally add your cluster `cluster2` to the new `ManagedClusterSet`:
++
+[source,sh,role=execute]
+----
+oc label managedcluster cluster2 cluster.open-cluster-management.io/clusterset=development --overwrite
+----
+
+. If you check back in the OpenShift Web Console you should now see that the `ManagedClusterSet` *development* has been created and that your hosted cluster *cluster2* is now a part of the `ManagedClusterSet`.
+
+== Set up Authentication
+
+After a cluster has been deployed the only way to access is is via the `kubeadmin` user. Now for real world scenarios this is not a usable way. Therefore an authentication provider is usually configured.
+
+In the case of a hosted cluster the control plane - and therefore the oauth pods - run on the hosting cluster. Therefore you must configure the authentication on the hosting cluster.
+
+You will create two users, `admin` and `developer`. `admin` will become a cluster administrator once we create a policy to grant the user `cluster-admin` privileges. But first let's set up the htpasswd authentication provider.
+
+. Create a new `htpasswd` file with users `admin` and `developer` - and use `openshift` as the password for both.
++
+[source,sh,role=execute]
+----
+htpasswd -bc $HOME/htpasswd admin openshift
+htpasswd -b $HOME/htpasswd developer openshift
+----
+
+. Create a secret in the `clusters` namespace containing this htpasswd file.
++
+[source,sh,role=execute]
+----
+oc -n clusters create secret generic htpasswd-development --from-file=htpasswd=$HOME/htpasswd
+----
+
+. Finally update the `HostedCluster` resource with the `oauth` stanza to configure authentication for your cluster.
++
+[source,sh,role=execute]
+----
+oc -n clusters patch hostedcluster cluster2 --type=merge --patch='{"spec":{"configuration":{"oauth":{"identityProviders":[{"name":"development","type":"HTPasswd","htpasswd":{"fileData":{"name": "htpasswd-development"}},"mappingMethod":"claim"}],"templates":{"error":{"name":""},"login":{"name":""},"providerSelection":{"name":""}},"tokenConfig":{}}}}}'
+----
+
+. Retrieve the Console URL for your hosted cluster:
++
+[source,sh,role=execute]
+----
+oc get managedcluster cluster2 -o json | jq -r '.status.clusterClaims[] | select(.name == "consoleurl.cluster.open-cluster-management.io") | .value'
+----
++
+.Sample Output
+[source,text,options=nowrap]
+----
+https://console-openshift-console.apps.cluster2.apps.d965w.dynamic.redhatworkshops.io
+----
++
+[NOTE]
+====
+If this command fails it is most likely because your hosted cluster hasn't finished deploying. Wait for the cluster to be fully available before retrying the command (check the cluster status in the *All Clusters* view).
+====
+
+. In a web browser navigate to the console and log in using `admin` as the username with `openshift` as the password.
++
+You will notice that `admin` is just a regular user at this point. This is because we have not yet created a `ClusterRoleBinding` granting the `admin` user *ClusterAdmin* permissions.
+
+. Create a policy to grant this permission:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: admin-authorization
+  namespace: development-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: admin-authorization
+      spec:
+        remediationAction: enforce
+        severity: medium
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+              annotations:
+                rbac.authorization.kubernetes.io/autoupdate: "true"
+              name: admin-authorization
+            roleRef:
+              apiGroup: rbac.authorization.k8s.io
+              kind: ClusterRole
+              name: cluster-admin
+            subjects:
+            - apiGroup: rbac.authorization.k8s.io
+              kind: User
+              name: admin
+EOF
+----
+
+. Create a placement to grant this permission to all clusters in the `ManagedClusterSet` *development*.
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: admin-authorization
+  namespace: development-policies
+spec:
+  clusterSets:
+  - development
+EOF
+----
+
+. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: admin-authorization
+  namespace: development-policies
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: admin-authorization
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: admin-authorization
+EOF
+----
+
+. Now return to your managed cluster console window and refresh the page. You should now be a full cluster administrator.
+
+== Deploy OpenShift Pipelines Operator
+
+The OpenShift Pipelines Operator is one of the easiest operators to deploy because it only needs a `Subscription` to install the operator - once the operator is running it automatically configures the OpenShift Pipelines deployment on the cluster.
+
+Policies can be used to ensure presence (or absence) of Kubernetes Resources on target clusters.
+
+A `Policy` usually consists of three parts: The `Policy` itself which outlines which resources should (or should not) be on the target clusters. A `Placement` which selects the target clusters and finally a `PlacementBinding` binding the two together.
+
+Note that you could re-use your `Placement` object for multiple policies - but it may be easier to manage to have a separate placement for each policy to enable easier changes in the future.
+
+. Create a policy to install the `Subscription` to a cluster:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: openshift-pipelines-installed
+  namespace: development-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: openshift-pipelines-installed
+      spec:
+        remediationAction: enforce
+        pruneObjectBehavior: DeleteIfCreated
+        severity: medium
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              name: openshift-pipelines
+              namespace: openshift-operators
+            spec:
+              channel: pipelines-1.13
+              installPlanApproval: Automatic
+              name: openshift-pipelines-operator-rh
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+EOF
+----
+
+. Create a `Placement` selecting the *development* `ManagedClusterSet`
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: openshift-pipelines-installed
+  namespace: development-policies
+spec:
+  clusterSets:
+  - development
+EOF
+----
+
+. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: openshift-pipelines-installed
+  namespace: development-policies
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: openshift-pipelines-installed
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: openshift-pipelines-installed
+EOF
+----
+
+. This is all that you need to do to install *OpenShift Pipelines* on all our development clusters.
++
+Check that the policy has been deployed:
++
+[source,sh,role=execute]
+----
+oc get policy -A | grep pipelines
+----
++
+.Sample Output
+[source,text,options=nowrap]
+----
+cluster2               development-policies.openshift-pipelines-installed   enforce              Compliant          64s
+development-policies   openshift-pipelines-installed                        enforce              Compliant          3m12s
+----
++
+Note that the policy in the `development-policies` shows as *Compliant* - and that the policy has been copied to the one cluster in your `ManagedClusterSet` - *cluster2*.
+
+== Deploy OpenShift GitOps Operator
+
+The OpenShift GitOps Operator is also one of the easiest operators to deploy because it only needs a `Subscription` to install the operator - once the operator is running it automatically configures the OpenShift GitOps deployment on the cluster.
+
+. Create a policy to install the `Subscription` to a cluster:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: openshift-gitops-installed
+  namespace: development-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: openshift-gitops-installed
+      spec:
+        remediationAction: enforce
+        pruneObjectBehavior: DeleteIfCreated
+        severity: medium
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              name: openshift-gitops-operator
+              namespace: openshift-operators
+            spec:
+              channel: gitops-1.11
+              installPlanApproval: Automatic
+              name: openshift-gitops-operator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+EOF
+----
+
+. Create a `Placement` selecting the *development* `ManagedClusterSet`
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: openshift-gitops-installed
+  namespace: development-policies
+spec:
+  clusterSets:
+  - development
+EOF
+----
+
+. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: openshift-gitops-installed
+  namespace: development-policies
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: openshift-gitops-installed
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: openshift-gitops-installed
+EOF
+----
+
+. This is all that you need to do to install *OpenShift GitOps* on all our development clusters.
++
+Check that the policy has been deployed:
++
+[source,sh,role=execute]
+----
+oc get policy -A | grep gitops
+----
++
+.Sample Output
+[source,text,options=nowrap]
+----
+cluster2               development-policies.openshift-gitops-installed      enforce              Compliant          13s
+development-policies   openshift-gitops-installed                           enforce              Compliant          32s
+----
+
+== Deploy OpenShift Serverless Operator
+
+The OpenShift Serverless Operator is a little bit more complicated because first you need to deploy the operator by creating a `Subscription`. Then you need to tell the operator to actually install OpenShift Serverless by creating a `KNativeServing` object. In addition you want to create a `KNativeEventing` object to enable event driven architectures.
+
+Both of these objects need to live in their own namespace - so in total you need to create 5 resources via the policy:
+
+* Subscription
+* Namespace: knative-serving
+* Resource: KNativeServing
+* Namespace: knative-eventing
+* Resource: KNativeEventing
+
+. Create a policy to install the `Subscription` to a cluster:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: openshift-serverless-installed
+  namespace: development-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: openshift-serverless-installed
+      spec:
+        remediationAction: enforce
+        pruneObjectBehavior: DeleteIfCreated
+        severity: medium
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              name: openshift-serverless-operator
+              namespace: openshift-operators
+            spec:
+              channel: stable
+              installPlanApproval: Automatic
+              name: serverless-operator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: knative-serving
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: knative-eventing
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operator.knative.dev/v1beta1
+            kind: KnativeServing
+            metadata:
+              name: knative-serving
+              namespace: knative-serving
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operator.knative.dev/v1beta1
+            kind: KnativeEventing
+            metadata:
+              name: knative-eventing
+              namespace: knative-eventing
+EOF
+----
+
+. Create a `Placement` selecting the *development* `ManagedClusterSet`
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: cluster.open-cluster-management.io/v1beta1
+kind: Placement
+metadata:
+  name: openshift-serverless-installed
+  namespace: development-policies
+spec:
+  clusterSets:
+  - development
+EOF
+----
+
+. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
++
+[source,sh,role=execute]
+----
+cat << EOF | oc apply -f -
+---
+apiVersion: policy.open-cluster-management.io/v1
+kind: PlacementBinding
+metadata:
+  name: openshift-serverless-installed
+  namespace: development-policies
+placementRef:
+  apiGroup: cluster.open-cluster-management.io
+  kind: Placement
+  name: openshift-serverless-installed
+subjects:
+- apiGroup: policy.open-cluster-management.io
+  kind: Policy
+  name: openshift-serverless-installed
+EOF
+----
+
+. This is all that you need to do to install _and configure_ *OpenShift Serverless* on all our development clusters.
++
+Check that the policy has been deployed:
++
+[source,sh,role=execute]
+----
+oc get policy -A | grep serverless
+----
++
+.Sample Output
+[source,text,options=nowrap]
+----
+cluster2               development-policies.openshift-serverless-installed   enforce              NonCompliant       24s
+development-policies   openshift-serverless-installed                        enforce              NonCompliant       2m11s
+----
++
+Note that this time (depending on how quickly you ran the command after creating the policy) policies in the `development-policies` shows as *NonCompliant* - this is because it takes a lot longer to create the subscription - and then create the Serverless resources. After a few minutes the policy will also switch to *Compliant*.
+
+== Summary
+
+In this module you learned:
+
+* How to configure authentication for your managed clusters
+* how to create a `ManagedClusterSet` to configure similar clusters as a group
+* how to create policies for simple operators to be installed on managed clusters
+* how to create a policy for a more complex operator with operands to be installed on managed clusters

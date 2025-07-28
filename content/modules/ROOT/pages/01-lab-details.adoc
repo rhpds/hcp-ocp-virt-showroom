@@ -1,0 +1,55 @@
+= Lab Details
+
+[[lab-content]]
+
+== Lab Content
+
+These are the four main sections that will be covered in the lab:
+
+*Deployment:* Using Red Hat Advanced Cluster Management for Kubernetes (RHACM) to deploy a virtual OpenShift on OpenShift cluster using Red Hat OpenShift Virtualization.
+This section also explores the environment once it's deployed.
+
+*Configuration:* Performing operations on the *hosting* cluster to enact configuration changes on the *hosted* cluster.
+
+*Scaling:* NodePools in a hosted control planes environment, like MachineSets in standard clusters, can be configured to autoscale when resources are unavaialable to meet application requests.
+In this module we will deploy an application and scale it up, requiring the cluster to scale up dynamically to meet application needs.
+
+*Cluster Upgrades:* This module is an exploration of centralized fleet management by experiencing the cluster upgrade processes, and a walkthrough of the cluster upgrade process using Red Hat Advanced Cluster Management for Kubernetes.
+
+*Storage:* Using the UI create a PVC inside of the guest cluster.
+
+*Managing clusters using policies:* Using policies to deploy operators and authentication.
+
+== Keys to lab success
+
+* Please read all instructions carefully when carrying out assigned tasks and do not only focus on the images provided.
+* If you are stuck and need assistance, please raise your hand and a proctor will see to you as soon as possible.
+* Each participant needs to have their own computer with a web browser and internet access.
+* A Chromium-based browser is recommended for the best experience.
+
+[[lab-info]]
+== Lab access
+
+=== OpenShift Console access
+
+Navigate to your {openshift_cluster_console_url}[OpenShift cluster console^].
+
+An administrator user has been configured, and login is available with the following credentials:
+
+* *User:* `{openshift_cluster_admin_username}`
+* *Password:* `{openshift_cluster_admin_password}`
+
+=== Bastion Access
+
+A RHEL bastion host is available with common utilities pre-installed and OpenShift command line access pre-configured {bastion_public_hostname}.
+
+For SSH access to the bastion when needed, use the following credentials:
+
+* *User:* `{bastion_ssh_user_name}`
+* *Password:* `{bastion_ssh_password}`
+
+== Final Lab Environment
+
+When this lab is complete, the following will be provisioned:
+
+image::01-lab-details/architecture.png[link=self, width=100%]

@@ -1,0 +1,382 @@
+= Scale Up
+
+After a hosted cluster is created, you can scale up the clusters in different ways:
+
+* You can scale an existing node pool or enable node auto-scaling for the hosted cluster.
+* You can create nodes pools with new values (cores, memory)
+
+== Scaling Up a nodepool
+
+Scaling a nodepool is really simple.
+The only step is to modify the number of replicas of the nodepool.
+The nodepool by default has the name of the cluster.
+
+. List existing nodepools
++
+[source,bash,role=execute]
+----
+oc -n clusters get nodepool
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME       CLUSTER    DESIRED NODES   CURRENT NODES   AUTOSCALING   AUTOREPAIR   VERSION   UPDATINGVERSION   UPDATINGCONFIG   MESSAGE
+cluster1   cluster1   2               2               False         False        4.14.5
+----
+
+. Scale up nodepool `cluster` to three replicas
++
+[source,bash,role=execute]
+----
+oc -n clusters scale nodepool cluster1 --replicas=3
+----
++
+.Sample Output
++
+[%nowrap]
+----
+nodepool.hypershift.openshift.io/cluster1 scaled
+----
+
+. List the VMs on `clusters-cluster1` namespace
++
+[source,bash,role=execute]
+----
+oc get vm -n clusters-cluster1
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                      AGE   STATUS         READY
+cluster1-ee50e7fb-ctrdd   83m   Running        True
+cluster1-ee50e7fb-dc59k   83m   Running        True
+cluster1-ee50e7fb-lmn5r   37s   Provisioning   False
+----
+
+. After a few minutes, the node will be visible on the guest cluster
++
+[source,bash,role=execute]
+----
+oc get node --kubeconfig=cluster1-kubeconfig
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                      STATUS   ROLES    AGE   VERSION
+cluster1-ee50e7fb-ctrdd   Ready    worker   71m   v1.27.6+d548052
+cluster1-ee50e7fb-dc59k   Ready    worker   71m   v1.27.6+d548052
+cluster1-ee50e7fb-lmn5r   Ready    worker   10m   v1.27.6+d548052
+----
++
+[NOTE]
+In a nodepool all the VMs have the same cores and memory assigned.
+
+
+== Scaling Down a nodepool
+
+It is possible as well to scale down a cluster changing the number of the replicas.
+
+. Scale down nodepool `cluster1` to two replicas
++
+[source,bash,role=execute]
+----
+oc -n clusters scale nodepool cluster1 --replicas=2
+----
++
+.Sample Output
++
+[%nowrap]
+----
+nodepool.hypershift.openshift.io/cluster1 scaled
+----
+
+. List the VMs on `clusters-cluster1` namespace (repeat the command until status is _Terminating_)
++
+[source,bash,role=execute]
+----
+oc get vm -n clusters-cluster1
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                      AGE    STATUS        READY
+cluster1-ee50e7fb-ctrdd   100m   Terminating   False
+cluster1-ee50e7fb-dc59k   100m   Running       True
+cluster1-ee50e7fb-lmn5r   17m    Running       True
+----
+
+. The node chosen node to be removed will disappear from the list
++
+[source,bash,role=execute]
+----
+oc get node --kubeconfig=cluster1-kubeconfig
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                      STATUS   ROLES    AGE   VERSION
+cluster1-ee50e7fb-dc59k   Ready    worker   76m   v1.27.6+d548052
+cluster1-ee50e7fb-lmn5r   Ready    worker   15m   v1.27.6+d548052
+----
+
+== Configure Autoscale
+
+When you need more capacity dynamically in your hosted cluster, you can enable auto-scaling to install new worker nodes automatically.
+
+To enable auto-scaling you need to add the parameter `autoScaling` and the values `max` and `min`.
+It is also required to remove the `replicas` parameter.
+In the following example auto-scaling is set to a min of 2 and a max of 5.
+
+. The node chosen to be removed will disappear from the list
++
+[source,bash,role=execute]
+----
+oc -n clusters patch nodepool cluster1 --type=json -p '[{"op": "remove", "path": "/spec/replicas"},{"op":"add", "path": "/spec/autoScaling", "value": { "max": 5, "min": 2 }}]'
+----
++
+.Sample Output
++
+[%nowrap]
+----
+nodepool.hypershift.openshift.io/cluster1 patched
+----
+
+As the load for the guest cluster doesn't require more workers, it will keep the two workers.
+
+. Create a `Deployment` definition to add load to the guest cluster
++
+[source,bash,role=execute]
+----
+cat >workload-config.yaml <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: reversewords
+  name: reversewords
+  namespace: default
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: reversewords
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: reversewords
+    spec:
+        containers:
+        - image: quay.io/mavazque/reversewords:latest
+          name: reversewords
+          resources:
+            requests:
+              memory: 1Gi
+EOF
+----
+
+. Apply the YAML definition on the guest cluster
++
+[source,bash,role=execute]
+----
+oc apply -f workload-config.yaml --kubeconfig=cluster1-kubeconfig
+----
+
+. Check the Deployment status inside of the guest cluster
++
+[source,bash,role=execute]
+----
+oc get Deployment --kubeconfig=cluster1-kubeconfig
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+reversewords   0/6     6            0           43s
+----
+
+. List the pods
++
+[source,bash,role=execute]
+----
+oc get pod --kubeconfig=cluster1-kubeconfig
+----
+
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                            READY   STATUS    RESTARTS   AGE
+reversewords-7c674f6697-5dgsx   0/1     Pending   0          49s
+reversewords-7c674f6697-6kcxx   0/1     Pending   0          49s
+reversewords-7c674f6697-7r2x2   0/1     Pending   0          49s
+reversewords-7c674f6697-7zcwt   0/1     Pending   0          49s
+reversewords-7c674f6697-bxxpn   0/1     Pending   0          49s
+reversewords-7c674f6697-cb8sx   0/1     Pending   0          49s
+----
+
+. Get the details of one of the pending pods (make sure to replace `reversewords-7c674f6697-5dgsx` with the name of one of *your* pods)
++
+[source,bash]
+----
+oc describe pod reversewords-7c674f6697-5dgsx --kubeconfig=cluster1-kubeconfig
+----
++
+.Sample Output
++
+[%nowrap]
+----
+<<REDACTED>>
+Events:
+  Type     Reason             Age   From                Message
+  ----     ------             ----  ----                -------
+  Warning  FailedScheduling   70s   default-scheduler   0/2 nodes are available: 2 Insufficient memory. preemption: 0/2 nodes are available: 2 No preemption victims found for incoming pod..
+  Normal   TriggeredScaleUp   57s   cluster-autoscaler  pod triggered scale-up: [{MachineDeployment/clusters-cluster1/cluster1 2->5 (max: 5)}]
+  Normal   NotTriggerScaleUp  46s   cluster-autoscaler  pod didn't trigger scale-up: 1 max node group size reached
+----
++
+[NOTE]
+The cluster trigers the autoscale up
+
+. List the current VMs on the the main cluster. Repeat until the VMs are in _Running_ status
++
+[source,bash,role=execute]
+----
+oc get vm -n clusters-cluster1
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                      AGE    STATUS    READY
+cluster1-ee50e7fb-bqbrk   5m8s   Running   True
+cluster1-ee50e7fb-dc59k   137m   Running   True
+cluster1-ee50e7fb-ddd7h   5m8s   Running   True
+cluster1-ee50e7fb-lmn5r   54m    Running   True
+cluster1-ee50e7fb-v2rf9   5m8s   Running   True
+----
+
+. Wait a few minutes and ensure the new nodes are Ready and the pods running
++
+[source,bash,role=execute]
+----
+oc get node,pod --kubeconfig=cluster1-kubeconfig
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME                           STATUS   ROLES    AGE     VERSION
+node/cluster1-7967429f-7r7r2   Ready    worker   51m     v1.27.6+d548052
+node/cluster1-7967429f-gxcks   Ready    worker   4m6s    v1.27.6+d548052
+node/cluster1-7967429f-gxj2n   Ready    worker   4m4s    v1.27.6+d548052
+node/cluster1-7967429f-k884d   Ready    worker   4m10s   v1.27.6+d548052
+node/cluster1-7967429f-zqppg   Ready    worker   78m     v1.27.6+d548052
+
+NAME                                READY   STATUS    RESTARTS   AGE
+pod/reversewords-869fc9596b-2nhs9   1/1     Running   0          7m48s
+pod/reversewords-869fc9596b-44lwv   1/1     Running   0          7m48s
+pod/reversewords-869fc9596b-lw4xw   1/1     Running   0          7m48s
+pod/reversewords-869fc9596b-mb2rb   1/1     Running   0          7m48s
+pod/reversewords-869fc9596b-ndstt   1/1     Running   0          7m48s
+pod/reversewords-869fc9596b-q2zpq   1/1     Running   0          7m48s
+----
+
+. Delete the deployment
++
+[source,bash,role=execute]
+----
+oc delete Deployment reversewords --kubeconfig=cluster1-kubeconfig
+----
++
+[NOTE]
+Deleting the `Deployment` and waiting around 10min, it will trigger the scale down and the VMs are going to be deleted automatically. You don't need to wait as autoScaling is disabled in next step.
+
+. For the next exercise,  disable the autoScaling
++
+[source,bash,role=execute]
+----
+oc -n clusters patch nodepool cluster1 --type=json -p '[{"op": "remove", "path": "/spec/autoScaling"},{"op":"add", "path": "/spec/replicas", "value": 2}]'
+----
+
+. After a few minutes the VMs will be reduced to two
++
+[source,bash,role=execute]
+----
+watch oc get vm -n clusters-cluster1
+----
+
+== Creating a New nodepool
+
+It is possible to create a new nodepool with nodes with different resources as the default one created.
+
+. Create a nodepool with the command `hcp` called `cluster1-pool2`
++
+[source,bash,role=execute]
+----
+hcp create nodepool kubevirt \
+--cluster-name cluster1 \
+--name cluster1-pool2 \
+--node-count 2 \
+--memory 8Gi \
+--cores 4 \
+--root-volume-size 20
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NodePool cluster1-pool2 created
+----
+
+. List the nodepools available
++
+[source,bash,role=execute]
+----
+oc get nodepool -n clusters
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAME             CLUSTER    DESIRED NODES   CURRENT NODES   AUTOSCALING   AUTOREPAIR   VERSION   UPDATINGVERSION   UPDATINGCONFIG   MESSAGE
+cluster1         cluster1   2               2               False         False        4.14.5
+cluster1-pool2   cluster1   2                               False         False                  True              True             Minimum availability requires 2 replicas, current 0 available
+----
+
+. List the VMs created on the UI or using the CLI.
++
+[source,bash,role=execute]
+----
+watch oc get vm -n clusters-cluster1
+----
++
+.Sample Output
++
+[%nowrap]
+----
+NAMESPACE           NAME                            AGE    STATUS        READY
+clusters-cluster1   cluster1-7967429f-7r7r2         141m   Running       True
+clusters-cluster1   cluster1-7967429f-gxcks         94m    Running       True
+clusters-cluster1   cluster1-pool2-3620075a-24z88   7m3s   Running       True
+clusters-cluster1   cluster1-pool2-3620075a-rlzpk   7m3s   Running       True
+----

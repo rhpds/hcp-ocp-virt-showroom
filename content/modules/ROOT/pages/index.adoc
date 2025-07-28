@@ -1,29 +1,24 @@
-= Introducing OpenShift on OpenShift with Hosted Control Planes
+= Introducing {lab_name}
 
-The goal of this lab is to familiarize the attendees with the benefits and features of hosted virtual Red Hat OpenShift clusters deployed to bare metal OpenShift using hosted control planes (HCP). Hosted control planes (a downstream of the hypershift project) were made generally available, and fully supported, with OpenShift 4.14. This capability allows for a central management cluster to host multiple managed clusters in bare metal or virtualized form. This greatly increases the efficiency of an OpenShift deployment, saving on physical resource costs, cluster management overhead, and the total time to deploy, doing so is quite expedited. In addition this lab will explore the advantages of using a centralized management solution for the hosted clustersm which is provided by Advanced Cluster Management for Kubernetes (RHACM). 
+Welcome to the OpenShift on OpenShift with Hosted Control Planes lab.
+This lab will familiarize with the benefits and features of hosted virtual Red Hat OpenShift clusters deployed to bare metal OpenShift using hosted control planes (HCP).
+Hosted control planes (a downstream of the hypershift project) were made generally available, and fully supported, with OpenShift 4.14.
+This capability allows for a central management cluster to host multiple managed clusters in bare metal or virtualized form.
+This greatly increases the efficiency of an OpenShift deployment, saving on physical resource costs, cluster management overhead, and the total time to deploy, doing so is quite expedited.
+In addition this lab will explore the advantages of using a centralized management solution for the hosted clustersm which is provided by Advanced Cluster Management for Kubernetes (RHACM).
 
 [[terminology]]
 == Terminology
 
-* *Hosted cluster*
+* *ACM Hub cluster*
 +
-An OpenShift Container Platform cluster with its control plane and API endpoint hosted on a management cluster. The hosted cluster includes the control plane and its corresponding data plane.
+A cluster that hosts the Red Hat Advanced Cluster Management for Kubernetes (RHACM) operator.
+The hub cluster is synonymous with the management cluster.
 
-* *Hosted cluster infrastructure*
+* *Hosting service cluster*
 +
-Network, compute, and storage resources that exist in the tenant or end-user cloud account.
-
-* *Hosted control plane*
-+
-An OpenShift Container Platform control plane that runs on the management cluster, which is exposed by the API endpoint of a hosted cluster. The components of a control plane include etcd, the Kubernetes API server, the Kubernetes controller manager, and a VPN.
-
-* *Managed cluster*
-+
-A cluster that the hub cluster manages. This term is specific to the cluster lifecycle that the multicluster engine for Kubernetes Operator manages in Red Hat Advanced Cluster Management. A managed cluster is not the same thing as a management cluster. For more information, see Managed cluster.
-
-* *Management, or hosting, cluster*
-+
-An OpenShift Container Platform cluster where the HyperShift Operator is deployed and where the control planes for hosted clusters are hosted. The management cluster is synonymous with the hosting cluster.
+An OpenShift Container Platform cluster where the HyperShift Operator is deployed and where the control planes for hosted clusters are hosted.
+The Hosting service cluster is synonymous with the management cluster.
 
 * *Management cluster infrastructure*
 +
@@ -31,87 +26,142 @@ Network, compute, and storage resources of the management cluster.
 
 * *Node pool*
 +
-A resource that contains the compute nodes. The control plane contains node pools. The compute nodes run applications and workloads.
+A resource that contains the worker nodes.
+The control plane contains node pools.
+The worker nodes run applications and workloads.
+
+* *Managed cluster*
++
+Any cluster that the hub cluster manages.
+This term is specific to the cluster lifecycle that is managed by the multicluster engine for Kubernetes Operator in Red Hat Advanced Cluster Management.
+A managed cluster may be either hosted or physical.
+
+* *Hosted cluster*
++
+An managed cluster with its control plane and API endpoint hosted on a management cluster.
+The hosted cluster includes the control plane and its corresponding data plane.
+
+* *Hosted cluster infrastructure*
++
+Network, compute, and storage resources that exist in the tenant or end-user cloud account.
+
+* *Hosted control plane*
++
+Part of a Hosted cluster.
+An OpenShift Container Platform control plane that runs on the management cluster, which the API endpoint of a hosted cluster exposes.
+The components of a control plane include etcd, the Kubernetes API server, the Kubernetes controller manager, and a VPN.
 
 
 [[value-prop]]
 == Why use hosted control planes?
 
-With the introduction of OpenShift Virtualization Engine (OVE), Red Hat now provides an OpenShift experience that is tailored for, and targeted at, virtualization-only administrators. For customers who are using virtual OpenShift deployed to other hypervisor platforms, they can move to OVE without needing to change the way their hosted clusters are subscribed.
+With the introduction of OpenShift Virtualization Engine (OVE), Red Hat now provides an OpenShift experience that is tailored for, and targeted at, virtualization-only administrators.
+For customers who are using virtual OpenShift deployed to other hypervisor platforms, they can move to OVE without needing to change the way their hosted clusters are subscribed.
 
-Furthermore, with updates to the bare metal OpenShift Kuberntes Engine (OKE), OpenShift Container Platform (OCP), and OpenShift Platform Plus (OPP) offerings, virtual OpenShift clusters deployed to these bare metal clusters inherit subscriptions of the same product type from the bare metal cluster. For cusotmers with substantial virtual OpenShift deployments, this offers a cost efftive way to move their OpenShift footprint away from existing hypervisors while also simplifying the management paradigm and improving resource efficiency.
+Furthermore, with updates to the bare metal OpenShift Kuberntes Engine (OKE), OpenShift Container Platform (OCP), and OpenShift Platform Plus (OPP) offerings, virtual OpenShift clusters deployed to these bare metal clusters inherit subscriptions of the same product type from the bare metal cluster.
+For cusotmers with substantial virtual OpenShift deployments, this offers a cost efftive way to move their OpenShift footprint away from existing hypervisors while also simplifying the management paradigm and improving resource efficiency.
 
-*Distributed Clusters for Disaster Recovery:* A single hosted control plane instance deployed to a management or hub cluster could have a number of node pools assigned to the cluster from remote managed locations in disparate data centers, helping to protect against the loss of a cluster in the event of an unplanned disaster or data center outage. Should the worker nodes in one data center become unavailable, the application pods that are non-responsive could be relaunched on additional worker nodes in the cluster that reside in a different location. 
+*Distributed Clusters for Disaster Recovery:* A single hosted control plane instance deployed to a management or hub cluster could have a number of node pools assigned to the cluster from remote managed locations in disparate data centers, helping to protect against the loss of a cluster in the event of an unplanned disaster or data center outage.
+Should the worker nodes in one data center become unavailable, the application pods that are non-responsive could be relaunched on additional worker nodes in the cluster that reside in a different location.
 
-*Ease of Cluster Administration:* Service providers or groups acting in such a manner can provision entirely new cluster environments rapidly, without additional overhead. New clusters can be made available to end users in a matter of minutes, and taken down once they are no longer needed. Developers may even be able to request the provisioning of clusters on demand for testing of a specific application in an isolated environment. The physical separation of control planes and worker nodes also allows cluster administrators to update control planes individually or even without updating the worker nodes for a cluster in tandem.
+*Ease of Cluster Administration:* Service providers or groups acting in such a manner can provision entirely new cluster environments rapidly, without additional overhead.
+New clusters can be made available to end users in a matter of minutes, and taken down once they are no longer needed.
+Developers may even be able to request the provisioning of clusters on demand for testing of a specific application in an isolated environment.
+The physical separation of control planes and worker nodes also allows cluster administrators to update control planes individually or even without updating the worker nodes for a cluster in tandem.
 
-*Reduction of Physical Resources:* A traditional OpenShift deployment requires a minimum of 3 control plane hosts and 2 data plane hosts in order to be deployed as a highly available and fault-tolerant platform. In an environment where a number of separate clusters are being deployed, it would be more cost-effective to be able to deploy only worker nodes for each new cluster instance and to have the control plane for each not be localized but hosted in a centralized data center.
+*Reduction of Physical Resources:* A traditional OpenShift deployment requires a minimum of 3 control plane hosts and 2 data plane hosts in order to be deployed as a highly available and fault-tolerant platform.
+In an environment where a number of separate clusters are being deployed, it would be more cost-effective to be able to deploy only worker nodes for each new cluster instance and to have the control plane for each not be localized but hosted in a centralized data center.
 
-*Secure Multi-Tenancy:* In OpenShift, workloads and their responsibilities are often segregated through projects and access to these projects is governed by user accounts and permissions. While this virtual separation of applications exists, they still share the same level of access to all physical system resources as any other application and or project. The use of hosted control planes to dedicate entirely managed OpenShift clusters, either virtual or physical to projects or end users, offers a cluster the ability to safely separate workloads completely and allows for a truer form of multi-tenancy than traditionally available in OpenShift. 
+*Secure Multi-Tenancy:* In OpenShift, workloads and their responsibilities are often segregated through projects and access to these projects is governed by user accounts and permissions.
+While this virtual separation of applications exists, they still share the same level of access to all physical system resources as any other application and or project.
+The use of hosted control planes to dedicate entirely managed OpenShift clusters, either virtual or physical to projects or end users, offers a cluster the ability to safely separate workloads completely and allows for a truer form of multi-tenancy than traditionally available in OpenShift.
 
-*Secure Network Segregation:* Due to the natural decoupling of the infrastructure, hosted control planes allow for the control planes themselves to be a part of the network domain of the management cluster, while the worker nodes reside on a different physical network and are able to be a part of that network domain. This arrangement ensures that management traffic is separated from data plane traffic, and that applications deployed do not have access to the control plane through physical separation.
-
+*Secure Network Segregation:* Due to the natural decoupling of the infrastructure, hosted control planes allow for the control planes themselves to be a part of the network domain of the management cluster, while the worker nodes reside on a different physical network and are able to be a part of that network domain.
+This arrangement ensures that management traffic is separated from data plane traffic, and that applications deployed do not have access to the control plane through physical separation.
 
 [[arc-con]]
 == Architectural Concepts
 
-A hosted control planes cluster can be deployed to either bare metal nodes or virtual nodes provisioned with OpenShift Virtualization. In this lab we will be focused on deployments of virtual OpenShift clusters provided by OpenShift Virtualization.
+=== Hosted Control Planes
 
-A hosted control planes cluster saves on physical resources by reducing the number of nodes that need to be deployed to support the cluster. The hosted cluster control plane services are run in Pods, in a dedicated namespace, on the hosting cluster. This results in only worker nodes being provisioned for the hosted cluster.
+A hosted control planes cluster worker nodes can be deployed to either bare metal nodes or virtual nodes provisioned with OpenShift Virtualization.
+In this lab we will be focused on deployments of virtual OpenShift clusters provided by OpenShift Virtualization.
+
+A hosted control planes cluster saves on physical resources by reducing the number of nodes that need to be deployed to support the cluster.
+The hosted cluster control plane services are run in Pods, in a dedicated namespace, on the hosting cluster.
+This results in only worker nodes being provisioned for the hosted cluster.
 
 The following graphic compares a hosted control planes cluster to a traditional OpenShift cluster:
 
 image::intro/hosted_control_planes.png[link=self, window=blank, width=100%]
 
-As stated previously, with virtual clusters provided by OpenShift Virtualization, administration teams can use a single centralized cluster with physical nodes to deploy a large number of individual clusters for multi-tenant workloads.
+With hosted virtual clusters provided by OpenShift Virtualization, administration teams can use a single centralized cluster with physical nodes to deploy a large number of individual clusters for multi-tenant workloads.
 
 This is an example architecture showing a single hosting cluster, and multiple virtual clusters:
 
 image::intro/hcp_v.png[link=self, window=blank, width=100%]
 
-Such fleet management is greatly eased by the deployment of https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.12/html/about/index[Red Hat Advanced Cluster Management for Kubernetes (RHACM)^] as a part of the solution.
+=== Fleet Management with Red Hat Advanced Cluster Management
 
-The following graphic shows how a managed cluster depends on the hub cluster for a number of advanced features:
+Fleet management is greatly eased by the deployment of https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/about/index[Red Hat Advanced Cluster Management for Kubernetes (RHACM)^] as a part of the solution.
+
+Managed clusters depend on the hub cluster for a number of advanced features:
 
 image::intro/acm_overview.png[link=self, window=blank, width=100%]
 
-[[lab-summary]]
-== Lab Summary
+== Key Products
 
-These are the four main sections that will be covered in the lab:
+[#acm]
+=== Red Hat Advanced Cluster Management for Kubernetes
 
-*Deployment:* Using Red Hat Advanced Cluster Management for Kubernetes (RHACM) to deploy a virtual OpenShift on OpenShift cluster using Red Hat OpenShift Virtualization. This section also explores the environment once it's deployed.
+*Red Hat® Advanced Cluster Management for Kubernetes* controls clusters and applications from a single console, with built-in security policies.
 
-*Configuration:* Performing operations on the *hosting* cluster to enact configuration changes on the *hosted* cluster.
+With it, you can extend the value of *Red Hat OpenShift* by deploying apps, managing multiple clusters, and enforcing policies across multiple clusters at scale.
+Red Hat's solution ensures compliance, monitors usage, and maintains consistency.
 
-*Scaling:* NodePools in a hosted control planes environment, like MachineSets in standard clusters, can be configured to autoscale when resources are unavaialable to meet application requests. In this module we will deploy an application and scale it up, requiring the cluster to scale up dynamically to meet application needs.
+RHACM is also the preferred way to deploy clusters with Hosted Control Planes.
+image::/rhacm.png[]
 
-*Cluster Upgrades:* This module is an exploration of centralized fleet management by experiencing the cluster upgrade processes, and a walkthrough of the cluster upgrade process using Red Hat Advanced Cluster Management for Kubernetes.
+[#ocpv]
+=== OpenShift Virtualization
+*OpenShift Virtualization* is an add-on to *OpenShift Container Platform* that allows you to run and manage virtual machine workloads alongside container workloads.
 
+*OpenShift Virtualization* adds new objects into your *OpenShift Container Platform* cluster by using _Kubernetes custom resources_ to enable virtualization tasks. These tasks include:
 
-[[lab-info]]
-== Requirements for the Lab Environment
+* Creating and managing Linux and Windows virtual machines (VMs)
 
-* Please read all instructions carefully when carrying out assigned tasks and do not only focus on the images provided.
-* If you are stuck and need assistance, please raise your hand and a proctor will see to you as soon as possible.
-* Each participant needs to have their own computer with a web browser and internet access.
-* A Chromium-based browser is recommended for the best experience.
+* Running pod and VM workloads alongside each other in a cluster
 
-=== Credentials for the OpenShift Console
+* Connecting to virtual machines through a variety of consoles and CLI tools
 
-Your OpenShift cluster console is available {openshift_cluster_console_url}[here^].
+* Importing and cloning existing virtual machines
 
-An administrator user has been configured, and login is available with the following credentials:
+* Managing network interface controllers and storage disks attached to virtual machines
 
-* *User:* {openshift_cluster_admin_username}
-* *Password:* {openshift_cluster_admin_password}
+* Live migrating virtual machines between nodes
 
-=== Bastion Access
+An enhanced web console provides a graphical portal to manage these virtualized resources alongside the *OpenShift Container Platform* cluster containers and infrastructure.
 
-A RHEL bastion host is available with common utilities pre-installed and OpenShift command line access pre-configured {bastion_public_hostname}.
+*OpenShift Virtualization* is designed and tested to work well with *Red Hat OpenShift Data Foundation* features.
 
-For SSH access to the bastion when needed, use the following credentials:
+[#prerequisites]
 
-* *User:* {bastion_ssh_user_name}
-* *Password:* {bastion_ssh_password}
+=== Technical Prerequisites for Hosted control plane on OpenShift Virtualization
+* The *OpenShift Container Platform* managed cluster must have wildcard DNS routes enabled
+* The *OpenShift Container Platform* managed cluster must have *OpenShift Virtualization*, version 4.14 or later, installed on it.
+* The *OpenShift Container Platform* managed cluster must be configured with *OVNKubernetes* as the default pod network CNI.
+* The *OpenShift Container Platform* managed cluster must have a *default storage class*.
+* You need a valid *pull secret file* for the `quay.io/openshift-release-dev` repository.
+* Before you can provision your cluster, you need to configure a load balancer. For example, *MetalLB*.
+* For optimal network performance, use a network maximum transmission unit (`MTU`) of 9000 or greater on the *OpenShift Container Platform* cluster that hosts the *OpenShift Virtualization* virtual machines.
 
+[#metallb]
+
+== MetalLB
+As a cluster administrator, you can add the *MetalLB Operator* to your cluster so that when a service of type `LoadBalancer` is added to the cluster, MetalLB can add an external IP address for the service. The external IP address is added to the host network for your cluster.
+
+* *MetalLB* operating in `layer2` mode provides support for failover by utilizing a mechanism similar to IP failover. However, instead of relying on the virtual router redundancy protocol (_VRRP_) and keepalived, *MetalLB* leverages a _gossip-based protocol_ to identify instances of node failure. When a failover is detected, another node assumes the role of the leader node, and a gratuitous _ARP_ message is dispatched to broadcast this change.
+
+* *MetalLB* operating in `layer3` or border gateway protocol (_BGP_) mode delegates failure detection to the network. The _BGP router_ or routers that the *OpenShift Container Platform* nodes have established a connection with will identify any node failure and terminate the routes to that node.
+
+Using *MetalLB* instead of _IP failover_ is preferable for ensuring high availability of pods and services.

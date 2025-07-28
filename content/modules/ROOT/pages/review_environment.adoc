@@ -1,0 +1,73 @@
+= Review the environment
+
+== Login
+
+Login to {ocp_console}/dashboards[window=_blank] with the user `{ocp_username}` and the password `{ocp_password}`
+
+[#acm]
+== Review ACM
+
+* Select `local-cluster` on the top left menu
++
+image::/Review/01_ACM_Top_Level_Menu.png[]
+
+. Select in the left menu *Operators* -> *Installed Operators*
++
+image::/Review/02_Installed_Operators.png[]
++
+[NOTE]
+Ensure `All Projects` is selected to list all operators in the cluster.
+. Click on `Advanced Cluster Management for Kubernetes` to obtain more information.
++
+image::/Review/03_ACM_Information.png[]
+. Switch to tab `MultiClusterHub` to check the status.
++
+image::/Review/04_ACM_MultiCluster_hub.png[]
++
+[NOTE]
+Installation was done with default values. From RHACM 2.9, Hosted Control Planes are enabled out of the box with OpenShift Virtualization.
+
+* Select `All Clusters` in the top menu
++
+image::/Review/05_All_clusters.png[]
+
+* Close the dialog window that appears by clicking on the `x` in the top right corner
++
+image::/Review/06_Close_Dialog.png[]
+
+* Review the information show in the *Cluster list*
++
+image::/Review/07_Cluster_List.png[]
+
+It is possible to create clusters on different infrastructure provides using the UI. It is also possible to import existing clusters.
+
+Click on `local-cluster` and review the different tabs (_Overview_, _Nodes_, _Add-ons_).
+
+To use *OpenShift Virtualization* as the infrastructure for a new cluster it is necessary to use the CLI at this point.
+
+[#ocpv]
+== Review OpenShift Virtualization
+
+* Select `local-cluster` on the top left menu
++
+image::/Review/01_ACM_Top_Level_Menu.png[]
+
+. Select in the left menu *Operators* -> *Installed Operators*
++
+image::/Review/02_Installed_Operators.png[]
++
+[NOTE]
+Ensure `All Projects` is selected to list all operators in the cluster.
+. Click on `OpenShift Virtualization` to obtain more information.
++
+image::/Review/21_OCPV_Information.png[]
+. Check the status switching to tab `OpenShift Virtualization Deployment`
++
+image::/Review/22_OCPV_Hyperconverged.png[]
+
+. Navigate in the left menu *Virtualization* -> *Catalog*
++
+image::/Review/23_OCPV_Catalog.png[]
++
+[NOTE]
+Installing *OpenShift Virtualization* automatically configures templates ready to be used. The operator as well downloads the images for some of the templates. Templates with the label *Source available* are ready to use.

@@ -1,29 +1,42 @@
 name: modules
-title: OpenShift on OpenShift with Hosted Control Planes
+title: OpenShift on OpenShift with Virtualization and Hosted Control Planes
 version: master
 nav:
-  - modules/ROOT/nav.adoc
+- modules/ROOT/nav.adoc
 
-# sample GCP variables
 asciidoc:
   attributes:
-    api_url: sample_api_url
-    bastion_public_hostname: sample_bastion_public_hostname
-    bastion_ssh_password: sample_bastion_ssh_password
-    bastion_ssh_user_name: sample_bastion_ssh_user_name
-    guid: sample_guid
-    openshift_api_server_url: sample_openshift_api_server_url
-    openshift_api_url: sample_openshift_api_url
-    openshift_client_download_url: sample_openshift_client_download_url
-    openshift_cluster_admin_password: sample_openshift_cluster_admin_password
-    openshift_cluster_admin_username: sample_openshift_cluster_admin_username
-    openshift_cluster_console_url: sample_openshift_cluster_console_url
-    openshift_cluster_ingress_domain: sample_openshift_cluster_ingress_domain
-    openshift_cluster_num_users: sample_openshift_cluster_num_users
-    openshift_cluster_user_base: sample_openshift_cluster_user_base
-    openshift_cluster_user_count: sample_openshift_cluster_user_count
-    openshift_cluster_user_name: sample_openshift_cluster_user_name
-    openshift_console_url: sample_openshift_console_url
-    openshift_gitops_server: sample_openshift_gitops_server
-    showroom_primary_view_url: sample_showroom_primary_view_url
-    web_console_url: sample_web_console_url
+    lab_name: OpenShift on OpenShift with Virtualization and Hosted Control Planes
+    release-version: master
+    page-pagination: true
+    experimental: true
+    guid: my-guid
+    ssh_user: devops
+    ssh_password: devops
+    ssh_command: ssh devops@bastion.{guid}.example.opentlc.com
+    openshift_version: 4.18
+    openshift_cluster_console_url: https://openshift_cluster_console_url
+    openshift_cluster_admin_username: sample
+    api_url: https://api_url
+    bastion_public_hostname: sample
+    bastion_ssh_password: sample
+    bastion_ssh_port: sample
+    bastion_ssh_user_name: sample
+    openshift_api_server_url: https://openshift_api_server_url
+    openshift_api_url: sample
+    openshift_client_download_url: https://openshift_client_download_url
+    openshift_cluster_admin_password: sample
+    openshift_cluster_ingress_domain: sample
+    openshift_cluster_num_users: sample
+    openshift_cluster_user_base: sample
+    openshift_cluster_user_count: sample
+    openshift_cluster_user_name: sample
+    openshift_cluster_user_password: sample
+    openshift_console_url: sample
+    openshift_kubeadmin_password: sample
+    showroom_primary_view_url: https://sample
+    web_console_url: https://web_console_url
+    ocp_console: https://ocp_console
+    ocp_username: sample
+    ocp_password: sample
+    ocp_api: sample

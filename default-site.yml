@@ -1,32 +1,31 @@
 ---
 site:
-  title: "Lab01: OpenShift on OpenShift with Hosted Control Planes"
-  url: https://redhat-scholars.github.io/course-template
+  title: OpenShift on OpenShift with Virtualization and Hosted Control Planes
   start_page: modules::index.adoc
 
 content:
   sources:
-    - url: .
-      start_path: content
+  - url: ./
+    start_path: content
+
+antora:
+  extensions:
+  - id: dev-mode
+    require: ./content/lib/dev-mode.js
+    enabled: true
 
 ui:
   bundle:
-    url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/rh-one-2025/ui-bundle.zip
+    url: https://github.com/rhpds/rhdp_showroom_theme/releases/download/v0.0.1/ui-bundle.zip
     snapshot: true
   supplemental_files:
     - path: ./content/supplemental-ui
-    - path: ./content/lib
     - path: .nojekyll
     - path: ui.yml
       contents: "static_files: [ .nojekyll ]"
 
 runtime:
   cache_dir: ./.cache/antora
-
-antora:
-  extensions:
-    - require: ./content/lib/dev-mode.js
-      enabled: false
 
 output:
   dir: ./www
