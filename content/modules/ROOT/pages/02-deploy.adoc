@@ -203,12 +203,9 @@ Click on the *Control plane pods* link.
 image::deploy/control_plane_pods.png[link=self, window=blank, width=100%]
 
 . A new browser tab opens displaying the pods in the project *clusters-my-hosted-cluster*.
-+
-image::deploy/pods_my_hosted_cluster.png[link=self, window=blank, width=100%]
-
-. The pods here will consist of mostly replica sets for the processes that run the hosted cluster control plane.
+The pods here will consist of mostly replica sets for the processes that run the hosted cluster control plane.
 [loweralpha]
-.. Scroll down until you see the *etcd pods*.
+.. Search for pods by *Label*, indicating `app=etcd`.
 .. Notice that they are configured as *StatefulSets*.
 .. Click the *etcd-0* pod to details.
 +
@@ -223,7 +220,9 @@ image::deploy/etcd0_details.png[link=self, window=blank, width=100%]
 
 . Click the browser *back button* to return to the list of pods available in the *clusters-my-hosted-cluster* project.
 [loweralpha]
-.. Scroll to the very bottom of this list, until you see the pods named *virt-launcher*.
+.. Delete the label filter for *etcd-0* pod by clicking the *x*.
+.. Enter a new label filter: `kubevirt.io/virt-launcher`
+.. The pods named *virt-launcher* appear.
 .. These are the *VirtualMachineInstance* pods, in your node pool.
 .. Notice that the amount of *reserved memory* is much larger than any other pod in this project.
 +
