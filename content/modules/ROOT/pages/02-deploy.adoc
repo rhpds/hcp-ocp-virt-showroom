@@ -134,9 +134,26 @@ CAUTION: Be sure to select the *Release image #version 4.17.xx#*, so the cluster
 .. *Cluster set:* default
 .. *Release image:* #OpenShift *4.18.xx*#
 .. *Etcd storage class:* ocs-external-storagecluster-ceph-rbd
-.. Click on *Next* after filling out the options.
 +
 image::deploy/create_cluster_details.png[link=self, window=blank, width=100%]
+
+. This workshop platform is self-hosted, and the cluster and service networks that would ordinarily be used for the hosted cluster are used by the hosting cluster.
+So the YAML configuration of the cluster and service networks for the hosted cluster must be changed.
+[loweralpha]
+.. Click the *YAML On* switch
+.. Change lines 27 throught 31 to match the following IP address ranges.
++
+[,yaml,role=execute,subs="attributes"]
+----
+  networking:
+    clusterNetwork:
+      - cidr: 10.136.0.0/14
+    serviceNetwork:
+      - cidr: 172.31.0.0/16
+----
+.. Click on *Next* after subsituting the values.
++
+image::deploy/yaml_on_switch_and_networks.png[link=self, window=blank, width=100%]
 
 . The *Create cluster - Node pools* window appears.
 Node pools organize are the virtual machines that make up the compute node pool.
