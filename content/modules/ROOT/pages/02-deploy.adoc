@@ -153,7 +153,7 @@ So the YAML configuration of the cluster and service networks for the hosted clu
 ----
 .. Click on *Next* after subsituting the values.
 +
-image::deploy/yaml_on_switch_and_networks.png[link=self, window=blank, width=100%]
+image::deploy/yaml_on_switch_and_network.png[link=self, window=blank, width=100%]
 
 . The *Create cluster - Node pools* window appears.
 Node pools organize are the virtual machines that make up the compute node pool.
