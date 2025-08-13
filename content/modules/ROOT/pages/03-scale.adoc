@@ -13,176 +13,159 @@ As resources are consumed in the hosted cluster, the hosting cluster responds to
 [[deploy-app]]
 == Deploy an Application to your Hosted Cluster
 
-. On the *my-hosted-cluster* administration console, change to Developer perspective.
+. If you're not already on your hosted cluster, find the hosted cluster in the Advanced Cluster Management Console and log in.
 [loweralpha]
-.. Click on *Administrator* on the left-side menu.
-.. From the drop-down menu select *Developer*.
+.. On the upper left drop-down menu, select *All Clusters*.
+.. On the left bar, Select *Infrastructure -> Clusters*.
+.. Click *my-hosted-cluster*.
 +
-image::scale/switch_dev_view.png[link=self, window=blank, width=50%]
+image::scale/go_to_my-hosted-cluster.png[link=self, window=blank, width=100%]
 
-. The *Topology* screen shows a list of the projects in the cluster.
-Create a new project from the *Add* page.
+. Navigate to the *my-hosted-cluster* page.
 [loweralpha]
-.. To create an application, click on *+Add* on the left-side menu.
-.. Click the link to *create a Project* near the top of the page.
+.. Scroll down to the *Details* section.
+.. Click the *Console URL* link to open a new tab with the hosted cluster console.
+.. If you're not already logged in, return to the RHACM console and copy the Username & Password with the *Reveal Credentials* link.
 +
-image::scale/add_menu.png[link=self, window=blank, width=50%]
+image::scale/route_to_my-hosted-cluster.png[link=self, window=blank, width=100%]
 
-. The *Create-Project* window appears.
+Create a deployment of the reversewords application in the namespace *default*.
+This application will have six replicas, each requiriting 1Gi of memory.
+The hosted cluster doesn't have sufficient memory capacity at this time to deploy the application.
+We will soon scale up the cluster to acommodate them.
 [loweralpha]
-.. Enter project name: `apache-webserver`
-.. Click the *Create* button.
+.. On the upper right *+* button, select *Import YAML*.
+.. Copy and paste the following YAML into the *Import YAML* dialog box.
+.. Click *Create*.
 +
-image::scale/create_project.png[link=self, window=blank, width=50%]
+[source,sh,role=execute,subs="attributes"]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: reversewords
+  name: reversewords
+  namespace: default
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: reversewords
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: reversewords
+    spec:
+        containers:
+        - image: quay.io/rhpds/reversewords:latest
+          name: reversewords
+          resources:
+            requests:
+              memory: 1Gi
+----
++
+image::scale/app_quick_create.png[link=self, window=blank, width=100%]
 
-. When the project is created, the screen will enter it and see a number of ways to deploy an application.
+The Deployment details page appears.
+
+. Investigate the reason that the pods have not deployed.
 [loweralpha]
-.. Under the *Developer Catalog* section, click on *All services*.
+.. Click on the *Pods* tab.
+.. Click on of the :Hourglass: Pending links.
+.. The message indicates that the two nodes that are available to deploy application have *Insufficient memory* achieve application deployment.
 +
-image::scale/apache_webserver_project.png[link=self, window=blank, width=100%]
+image::scale/pods_in_pending.png[link=self, window=blank, width=100%]
 
-. In the *Developer Catalog*.
-[loweralpha]
-.. Use the *search bar* to search for the term `apache`
-.. Select the *Apache HTTP Server* template that appears.
-+
-image::scale/developer_catalog.png[link=self, window=blank, width=100%]
-
-. After clicking on the template a window describing the template will appear.
-[loweralpha]
-.. Click the blue button named *Instantiate Template*.
-+
-image::scale/instantiate_template.png[link=self, window=blank, width=50%]
-
-. A form pops up.
-[loweralpha]
-.. Set the *Name* of the application to *my-httpd*.
-.. Click on the blue *Create* button at the bottom of the page.
-+
-image::scale/my_httpd.png[link=self, window=blank, width=100%]
-
-. The pod will begin to build and there will be an instance of *my-httpd* in the center of the page.
-[loweralpha]
-.. *Click on the circle* to see information about the application as it builds.
-.. Click on *Resources*
-.. Note that the *Build running* message appears.
-.. Click on the *my-httpd* route object listed at the bottom.
-+
-image::scale/my_httpd_route.png[link=self, window=blank, width=100%]
-
-. The *Route details* page appears, where route settings are as expected.
-[loweralpha]
-.. Click the *Actions* menu in the upper right corner.
-.. Select *Edit Route* from the drop down menu.
-+
-image::scale/route_details.png[link=self, window=blank, width=100%]
-
-. On the Route Edit page.
-[loweralpha]
-.. Make sure that the *Target port* value is set to *8080-->8080*
-.. *Secure Route* box is checked.
-.. *TLS termination* set to *Edge*.
-.. *Insecure traffic* set to *Redirect*.
-.. Click on the blue *Save* button.
-In 4.17 versions of OpenShift, the *Save* button is replaced by *Edit*.
-+
-image::scale/edit_route.png[link=self, window=blank, width=100%]
-
-. Back on the *Route details* page.
-[loweralpha]
-.. Click the URL found under *Location*
-+
-image::scale/redirect_url.png[link=self, window=blank, width=50%]
-
-. This will open a new tab with the Apache test page for our *my-httpd* app.
-[loweralpha]
-.. *Close this tab* when you are done with it.
-+
-image::scale/apache_test_page.png[link=self, window=blank, width=100%]
-
+The goal of the next section is to setup automated node scaling, so that the cluster can support the application.
 
 [[explore-autoscale]]
 == Explore Autoscaling
 
 Now that the application is deployed and running, set up autoscaling.
-If autoscaling is not already enabled, it must be enabled
+If autoscaling is not already enabled, it must be enabled.
 
-. Enable autoscaling.
+. Return to the *Clusters > my-hosted-cluster > Overview* page.
 [loweralpha]
-.. Click on the tab to return to the *hosting cluster*, and return to the *Cluster node pools* section.
+.. Click on the browser tab to return to the *hosting cluster*.
+.. On the left bar, select *Infrastructure -> Clusters*, and from the *Cluster list* click *my-hosted-cluster*.
 .. Observe that there are still just two nodes in *my-node-pool*, but also see that *Autoscaling* is set to *False*.
 +
 image::scale/cluster_node_pools.png[link=self, window=blank, width=100%]
 
-. Use the Terminal in the lab instructions user interface.
+
+. Use the OpenShift Console Web Terminal
 [loweralpha]
 .. SSH to the bastion host once again if needed.
 +
-image::scale/ssh_bastion.png[link=self, window=blank, width=100%]
+image::scale/webterminal_start.png[link=self, window=blank, width=100%]
 
-. To enable Autoscaling for *my-node-pool*, disable the static replica count and enable autoscaling.
+. To enable Autoscaling for *my-node-pool*, apply the following patch to disable the static replica count and enable autoscaling.
 [loweralpha]
-.. Copy and paste the following syntax, and press the enter key.
+.. Copy and paste the following command into the OpenShift command line terminal, and press the enter key.
 +
 [source,sh,role=execute,subs="attributes"]
 ----
 oc -n clusters patch nodepool my-node-pool --type=json -p '[{"op": "remove", "path": "/spec/replicas"},{"op":"add", "path": "/spec/autoScaling", "value": { "max": 6, "min": 2 }}]'
 ----
 +
-image::scale/enable_autoscaling.png[link=self, window=blank, width=100%]
+.Sample output
+----
+Welcome to the OpenShift Web Terminal. Type "help" for a list of installed CLI tools.
+bash-5.1 ~ $ oc -n clusters patch nodepool my-node-pool --type=json -p '[{"op": "remove", "path": "/spec/replicas"},{"op":"add", "path": "/spec/autoScaling", "value": { "max": 6, "min": 2 }}]'
+nodepool.hypershift.openshift.io/my-node-pool patched
+bash-5.1 ~ $
+----
++
+image::scale/webterminal_nodepool_patch.png[link=self, window=blank, width=100%]
 
-. View the pod details.
+. Close the web terminal.
+
+. Observe the changes to *my-node-pool*.
+Autoscaling is now indicating *Min 2 Max 6*.
+Over time, *Status* will change from *Pending* to *Ready*.
++
+image::scale/nodepool_updating.png[link=self, window=blank, width=100%]
+
+. Virtual Machines are created on the hosting cluster to support the node pool, as triggered by the Pods in pending for the application.
 [loweralpha]
-.. Return to the tab where the application is currently running.
-.. Click on *Topology* to view the app.
-.. Click on *Details* on the right to view the pod details.
+.. On the left bar, click *Virtual Machines*.
+.. Watch as VMs are created and adopted by the hosted cluster *my-hosted-cluster* as nodes.
 +
-image::scale/my_httpd_pod_details.png[link=self, window=blank, width=100%]
+image::scale/nodepool_vms.png[link=self, window=blank, width=100%]
 
-. Apply pressure to the current cluster resources.
+. View the application pods and pod details to verify application deployment complete.
 [loweralpha]
-.. Use the toggle on the right side, scale the application up to 10 instances.
+.. Return to the browser tab of the hosted cluster, where the application is currently running.
+.. On the left bar, click *Workloads -> Deployments*.
+.. Click on the link *6 of 6 pods*
 +
-image::scale/scale_application.png[link=self, window=blank, width=100%]
+image::scale/deployments_6_of_6.png[link=self, window=blank, width=100%]
 
-. The application intially begins to scale quite quickly, but when it has exhausted resources it stalls.
-In this case there are seven running instances and three pending pods with no resources to be placed.
-+
-image::scale/out_of_resources.png[link=self, window=blank, width=100%]
-
-. Observe the size of the node pool updating on the *hosting cluster*.
+. Find out which nodes each of the pods are running on by managing the columns displayed.
 [loweralpha]
-.. Return to the tab that shows the information for the *hosting cluster*.
+.. Select the *Manage Columns* button.
 +
-image::scale/node_pool_update.png[link=self, window=blank, width=100%]
+image::scale/manage_columns.png[link=self, window=blank, width=100%]
 
-. While waiting for the autoscale action to complete, which can take about 10 minutes, visit the *local-cluster* to see the *VirtualMachines*.
+. Indicate the columns to display.
 [loweralpha]
-.. Return to the *local-cluster* tab.
-.. Click on left-side menu for *Virtualization* and *VirtualMachines* to see the newly added third machine.
+.. Uncheck *Owner*
+.. Check *Node*.
+.. Click *Save*.
 +
-image::scale/new_vm.png[link=self, window=blank, width=100%]
+image::scale/manage_columns_details.png[link=self, window=blank, width=100%]
 
-. Observe that it has completed updating, and status is *Ready*.
+. The pods and the nodes they are deployed on are now displayed.
 [loweralpha]
-.. Returning to the *All Clusters* window and reviewing the *my-node-pool*.
+.. Sort the list by *Node* to see how many nodes are involved support the application.
 +
-image::scale/nodepool_autoscale_ready.png[link=self, window=blank, width=100%]
+image::scale/pods_nodes_list.png[link=self, window=blank, width=100%]
 
-. Virtual Machines that are part of the node pool become part of the OpenShift cluster by being adopted as nodes.
-Observe that three OpenShift nodes are part of the pool.
-[loweralpha]
-.. Click on the *Nodes* tab at the top.
-+
-image::scale/nodes_menu.png[link=self, window=blank, width=100%]
-
-. Check the *my-httpd* application and verify that all desired replicas have now been deployed.
-[loweralpha]
-.. Click on the tab to the *hosted cluster*
-.. Check the *my-httpd* application for *pending replicas.*
-.. Note that there are now 10 replicas.
-+
-image::scale/all_app_replicas.png[link=self, window=blank, width=100%]
+Next, we will clean up the application and scale down the cluster.
 
 [[clean-up]]
 == Delete the Application and Scale Down the Cluster
@@ -191,18 +174,18 @@ Once the additional resources are no longer needed to support the application, t
 
 . Clean up the application to free up resources.
 [loweralpha]
-.. Select the *Actions* menu from the application details.
+.. Select the *Actions* drop-down menu from upper right.
 .. From the drop-down menu select *Delete Deployment*.
 +
 image::scale/delete_deployment.png[link=self, window=blank, width=100%]
 
-. Confirm deletion of the the *my-httpd* application and all dependent objects.
+. Confirm deletion of the the *reversewords* deployment all dependent objects.
 [loweralpha]
 .. Click the red *Delete* button.
 +
 image::scale/confirm_delete.png[link=self, window=blank, width=100%]
 
-. When the application is deleted, the page shows *No resources found*.
+. When the application is deleted, the page shows *No Deployments found*.
 +
 image::scale/no_resources_found.png[link=self, window=blank, width=100%]
 
