@@ -1,6 +1,10 @@
 * xref:01-lab-details.adoc[]
 * xref:02-deploy.adoc[]
 * xref:03-scale.adoc[]
+* xref:04-users.adoc[]
+* xref:05-policy.adoc[]
+* xref:06-upgrade.adoc[]
+* xref:07-storage.adoc[]
 
 // * xref:module-03.adoc[3. Creating a hosted cluster]
 // ** xref:module-03.adoc#cli[Install CLI]

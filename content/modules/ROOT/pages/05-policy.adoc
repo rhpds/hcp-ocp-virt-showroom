@@ -1,5 +1,8 @@
 = Managing Hosted Clusters using Policies
 
+Governance defines, monitors, and reports whether your cluster is compliant with a policy.
+A policy manages Kubernetes custom resource definition instances.
+You will use the Red Hat Advanced Cluster Management for Kubernetes policy framework supported policy templates to apply policies managed by these controllers.
 A freshly deployed cluster is rather empty.
 Usually you will want at least a few operators installed and maybe authentication as well so that your users can start using the cluster.
 

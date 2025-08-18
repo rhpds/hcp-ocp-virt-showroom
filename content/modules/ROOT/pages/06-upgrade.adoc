@@ -1,0 +1,103 @@
+= Upgrade the Hosted Cluster
+
+Fleet management is another of Red Hat Cluster Management for Kubernetes (RHACM) great strengths.
+Upgrading clusters is a stanard operational process that responsible operators must master.
+The upgrade process for a hosted control planes cluster is a little different from that of standalone clusters, and so must be understood.
+In this module we will explore the upgrade process, and then apply an upgrade to our cluster with configuration changes to the HostedCluster custom resource.
+
+*Goals*
+
+* Review upgrade processes for a hosted control planes cluster.
+* Perform an upgrade to the cluster.
+
+[[review-upgrade]]
+== Review the Upgrade Process
+
+. Log into our hosted cluster.
+.. In the *All Clusters* panel, from the *Infrastrucutre -> Clusters* section, click *my-hosted-cluster*
+select the *Console URL*.
++
+image::upgrade/cluster_details.png[link=self, window=blank, width=100%]
+
+. Log in with the *admin* administrative account using the password *openshift*.
++
+image::upgrade/hosted_cluster_login.png[link=self, window=blank, width=100%]
+
+. You will be presented with the Administrator overview, but there is something different from a standard cluster. In the *Details* panel take notice of the *Update Channel*.
++
+image::upgrade/admin_overview.png[link=self, window=blank, width=50%]
+
+. In the left-side menu click on *Administration* and from the drop down select *Cluster Settings*.
+. On the *Cluster Settings* page we see that the *Update status* confirms that no channel is configured, and that we are not able to set the channel, because the control plane is hosted.
++
+image::upgrade/update_channel.png[link=self, window=blank, width=100%]
+
+. Close the tab for the hosted cluster, and return to the hosting cluster and the *Cluster details* panel.
+You will see that there are several ways to initiate the cluster upgrade.
+
+. For starters, from the *Cluster details* panel, and the *Actions* drop down menu available there.
++
+image::upgrade/cluster_details_upgrade.png[link=self, window=blank, width=100%]
+
+. If we scroll up the page, we will see another optional place to kick off the upgrade process.
++
+image::upgrade/control_plane_status_upgrade.png[link=self, window=blank, width=100%]
+
+. And if we navigate to the very top of the clusters view we find two more ways to update our cluster specifically, both with the *Distribution version* column, and by clicking on the three-dot menu.
++
+image::upgrade/cluster_list_upgrade.png[link=self, window=blank, width=100%]
+
+. Something else you may notice from this screen as well, is the ability for full fleet upgrade, provided by RHACM. By selecting the check box next to each cluster you want to upgrade you can select upgrade channels for each, and schedule them all to upgrade simultaneously, or at specific intervals.
++
+image::upgrade/multi_cluster_upgrade.png[link=self, window=blank, width=100%]
+
+
+[[apply-upgrade]]
+== Apply the Cluster Upgrade
+
+. Now that we have explored the many methods that are available of how to begin our hosted cluster upgrade process, lets get started by performing one.
+
+. Starting from the *Cluster list* let us click on the link for *Upgrade available* for our hosted cluster.
++
+image::upgrade/upgrade_available.png[link=self, window=blank, width=100%]
+
+. A new window appears with a drop-down menu allowing you to select from a number of acceptable release versions, from the latest z release of your current version, to the latest version of OpenShift available.
+Our graphic here shows the latest version as 4.17.6, but in your drop down that may differ. Select the latest version available, and click the blue *upgrade* button.
++
+image::upgrade/upgrade_version.png[link=self, window=blank, width=100%]
++
+NOTE: If you notice, it's quite possible to select an upgrade version for your hosted cluster that is greater than your hosting cluster. This option gives you maximum flexibility for your deployments.
+
+. We see the message under *Distribution version* has a rolling wheel and a message that we are currently upgrading.
+If we want additional details about the process, we can click on *my-hosted-cluster*.
++
+image::upgrade/cluster_upgrading.png[link=self, window=blank, width=100%]
+
+. On the *Control plane status* we see the same rolling wheel and upgrading message, as well as live updates as each control plane component is upgraded.
++
+image::upgrade/control_plane_status_upgrading.png[link=self, window=blank, width=100%]
+
+. The upgrade process can take several minutes, but you will find that it is often much quicker than upgrading a full OpenShift cluster.
+
+. You can also see that it follows strict procedure while upgrading to cycle through control plane components one at a time to ensure cluster availability.
++
+image::upgrade/kube_api_degraded.png[link=self, window=blank, width=100%]
+
+. As the upgrade progresses we will continue to see live updates on *Control plane status* tile.
++
+image::upgrade/cluster_version_progressing_1.png[link=self, window=blank, width=100%]
++
+image::upgrade/cluster_version_progressing_2.png[link=self, window=blank, width=100%]
+
+. When the upgrade is complete we will see the *Control plane status* update to show the current version.
++
+image::upgrade/control_plane_upgrade_complete.png[link=self, window=blank, width=100%]
+
+. We can also login to our hosted cluster and see that it shows the upgraded version on the Administrator overview console.
++
+image::upgrade/admin_overview_upgrade_complete.png[link=self, window=blank, width=100%]
+
+== Summary
+
+In this module we explored how the upgrade process of an OpenShift on OpenShift with hosted control planes cluster differs from a standalone deployment.
+After exploring our various upgrade options we kicked off an upgrade process to the latest version of OpenShift.
