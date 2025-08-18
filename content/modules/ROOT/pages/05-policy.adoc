@@ -3,178 +3,81 @@
 Governance defines, monitors, and reports whether your cluster is compliant with a policy.
 A policy manages Kubernetes custom resource definition instances.
 You will use the Red Hat Advanced Cluster Management for Kubernetes policy framework supported policy templates to apply policies managed by these controllers.
-A freshly deployed cluster is rather empty.
+
+Also, a freshly deployed cluster is rather empty.
 Usually you will want at least a few operators installed and maybe authentication as well so that your users can start using the cluster.
 
 In this lab you will:
 
-* Configure authentication for the hosted cluster using htpasswd
+* Set up authorizations for administrative users
 * Deploy the following operators to your hosted cluster
 ** OpenShift Pipelines
 ** OpenShift GitOps
 ** OpenShift Serverless
 
-Especially deploying the *OpenShift GitOps* operator is a good idea because it can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
+Deploying the *OpenShift GitOps* operator is a good idea because it can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
 
 == Set up a ClusterSet
 
-It is a good practice to add hosted clusters to a `ClusterSet`. This is useful to configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
+It is good practice to add hosted clusters to a ClusterSet.
+ClusterSets allow the grouping of cluster resources.
 
-In this lab you will create *development* clusters - so our `ClusterSet` will be named *development*.
+Most significantly, they enables role-based access control management across all of the resources in the group allowing you to and configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
 
-. Allow the admin users to manage the clusters:
+In this lab you create *development* clusters - so our ClusterSet will be named *development*.
+
+While creating our ClusterSet you will also set up Submariner.
+Submariner provides direct networking between two or more Kubernetes clusters in a given ManagedClusterSet, either on-premises or in the cloud.
+
+=== Create the ClusterSet
+
+*ManagedClusterSets* are the custom resource definition of ClusterSets.
+
+With your web browser, create the cluster set, named *development*.
+
+Create a binding of this cluster set to a new namespace, named *development-policies*.
+
+More than one managed cluster set may be created and bound to the same namespace.
+
+All policies that appear in the new namespace *development-policies* will apply to the *development* cluster set, and any other cluster sets you may bind to this namespace.
+
+Further, you may create a *placement* to refine the policy assignment to particular managed cluster set, if necessary.
+
+== Set up Administrative Users
+
+In prior sections of this lab you have configured authentication for your hosted cluster.
+
+. In a web browser navigate to the hosted cluster console and log in using *admin* as the username with *openshift* as the password.
++
+You will notice that *admin* is just a regular user at this point.
+
+This is because we have not yet created a *ClusterRoleBinding* granting the *admin* user *ClusterAdmin* permissions.
+
+. Create a policy to grant *ClusterAdmin* permission to user *admin*.
+This will apply to all clusters in the clusterset "development":
++
+.. Click on *Governance -> Create Policy*
++
+image::policy/create-policy.png[]
+
+. The Create Policy screen appears.
+Fill out the form according to the below, and also not that you'll be editing YAML in the black box as well.
+.. Enter the Name: `admin-authorization`
+.. Select the Namespace: `development-policies`
+.. Click *Next*
++
+image::policy/policy-form1.png[]
+
+.. Select the Remediation Action: `Enforce`
+.. Paste the following policy-tempalte YAML in the black box, following the existing YAML.
+This defines a policy-template that's not predefined for you.
+However, you will notice that the form on the left updates to match the policy-template you paste in:
+.. Click *Next*
++
+image::policy/policy-form2.png[]
 +
 [source,sh,role=execute]
 ----
-cat << EOF | oc apply -f -
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: open-cluster-management:subscription-admin
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: open-cluster-management:subscription-admin
-subjects:
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: system:admin
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: admin
-- apiGroup: rbac.authorization.k8s.io
-  kind: User
-  name: kubeadmin
-EOF
-----
-
-. Create a namespace for the Submariner Broker to run.
-+
-[source,sh,role=execute]
-----
-oc create namespace development-broker
-----
-
-. Create a namespace to host the policies for the *development* `ManagedClusterSet`:
-+
-[source,sh,role=execute]
-----
-oc create namespace development-policies
-----
-
-. Create the `ManagedClusterSet`
-+
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: cluster.open-cluster-management.io/v1beta2
-kind: ManagedClusterSet
-metadata:
-  annotations:
-    cluster.open-cluster-management.io/submariner-broker-ns: development-broker
-  finalizers:
-  - cluster.open-cluster-management.io/managedclusterset-clusterrole
-  - cluster.open-cluster-management.io/submariner-cleanup
-  name: development
-spec:
-  clusterSelector:
-    selectorType: ExclusiveClusterSetLabel
-EOF
-----
-
-. Create a `ManagedClusterSetBinding`:
-+
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: cluster.open-cluster-management.io/v1beta2
-kind: ManagedClusterSetBinding
-metadata:
-  name: development
-  namespace: development-policies
-spec:
-  clusterSet: development
-EOF
-----
-
-. Finally add your cluster `cluster2` to the new `ManagedClusterSet`:
-+
-[source,sh,role=execute]
-----
-oc label managedcluster cluster2 cluster.open-cluster-management.io/clusterset=development --overwrite
-----
-
-. If you check back in the OpenShift Web Console you should now see that the `ManagedClusterSet` *development* has been created and that your hosted cluster *cluster2* is now a part of the `ManagedClusterSet`.
-
-== Set up Authentication
-
-After a cluster has been deployed the only way to access is is via the `kubeadmin` user. Now for real world scenarios this is not a usable way. Therefore an authentication provider is usually configured.
-
-In the case of a hosted cluster the control plane - and therefore the oauth pods - run on the hosting cluster. Therefore you must configure the authentication on the hosting cluster.
-
-You will create two users, `admin` and `developer`. `admin` will become a cluster administrator once we create a policy to grant the user `cluster-admin` privileges. But first let's set up the htpasswd authentication provider.
-
-. Create a new `htpasswd` file with users `admin` and `developer` - and use `openshift` as the password for both.
-+
-[source,sh,role=execute]
-----
-htpasswd -bc $HOME/htpasswd admin openshift
-htpasswd -b $HOME/htpasswd developer openshift
-----
-
-. Create a secret in the `clusters` namespace containing this htpasswd file.
-+
-[source,sh,role=execute]
-----
-oc -n clusters create secret generic htpasswd-development --from-file=htpasswd=$HOME/htpasswd
-----
-
-. Finally update the `HostedCluster` resource with the `oauth` stanza to configure authentication for your cluster.
-+
-[source,sh,role=execute]
-----
-oc -n clusters patch hostedcluster cluster2 --type=merge --patch='{"spec":{"configuration":{"oauth":{"identityProviders":[{"name":"development","type":"HTPasswd","htpasswd":{"fileData":{"name": "htpasswd-development"}},"mappingMethod":"claim"}],"templates":{"error":{"name":""},"login":{"name":""},"providerSelection":{"name":""}},"tokenConfig":{}}}}}'
-----
-
-. Retrieve the Console URL for your hosted cluster:
-+
-[source,sh,role=execute]
-----
-oc get managedcluster cluster2 -o json | jq -r '.status.clusterClaims[] | select(.name == "consoleurl.cluster.open-cluster-management.io") | .value'
-----
-+
-.Sample Output
-[source,text,options=nowrap]
-----
-https://console-openshift-console.apps.cluster2.apps.d965w.dynamic.redhatworkshops.io
-----
-+
-[NOTE]
-====
-If this command fails it is most likely because your hosted cluster hasn't finished deploying. Wait for the cluster to be fully available before retrying the command (check the cluster status in the *All Clusters* view).
-====
-
-. In a web browser navigate to the console and log in using `admin` as the username with `openshift` as the password.
-+
-You will notice that `admin` is just a regular user at this point. This is because we have not yet created a `ClusterRoleBinding` granting the `admin` user *ClusterAdmin* permissions.
-
-. Create a policy to grant this permission:
-+
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: policy.open-cluster-management.io/v1
-kind: Policy
-metadata:
-  name: admin-authorization
-  namespace: development-policies
-spec:
-  remediationAction: enforce
-  disabled: false
   policy-templates:
   - objectDefinition:
       apiVersion: policy.open-cluster-management.io/v1
@@ -201,47 +104,56 @@ spec:
             - apiGroup: rbac.authorization.k8s.io
               kind: User
               name: admin
-EOF
 ----
 
-. Create a placement to grant this permission to all clusters in the `ManagedClusterSet` *development*.
-+
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: cluster.open-cluster-management.io/v1beta1
-kind: Placement
-metadata:
-  name: admin-authorization
-  namespace: development-policies
-spec:
-  clusterSets:
-  - development
-EOF
-----
+. A *placement* is optional, and is more fine grained.
+It enables particular clusters in a cluster set to be assigned policies.
+Otherwise, all clusters in the managed cluster set will be assigned the policy.
 
-. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
+.. Click *New placement* and examine the new YAML in the black box.
+You will notice that both a *placement* and a *placementbinding* have been created.
 +
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: policy.open-cluster-management.io/v1
-kind: PlacementBinding
-metadata:
-  name: admin-authorization
-  namespace: development-policies
-placementRef:
-  apiGroup: cluster.open-cluster-management.io
-  kind: Placement
-  name: admin-authorization
-subjects:
-- apiGroup: policy.open-cluster-management.io
-  kind: Policy
-  name: admin-authorization
-EOF
-----
+image::policy/policy-form3.png[]
+
+. *Policy annotations* may be skipped because we are not associating our policies with any security standards in this lab.
+.. Click *Next*
++
+image::policy/policy-form4.png[]
+
+. Review your policy.
+.. Click *Submit* when you're done reviewing.
++
+image::policy/policy-form5.png[]
+
+. The *admin-authorization* screen appears.
+.. Note that your policy was *Created*, that you have a green check next to *Cluster violations* indicating no violations,
++
+image::policy/admin-authorization.png[]
+
+. Find more details about the application of the policy by clicking the *Results* tab.
+.. Note that the *clusterrolebindings [admin-authorization] found as specified*.
++
+image::policy/admin-authorization-results.png[]
+
+. But the cluster wasn't that way from the start, and you can see the history of the policy by clicking the *View history* on the right.
+.. Note that you can see that the cluster was initially in Violation, but that the clusterrolebidning was created successfully and the cluster now has No violations.
++
+image::policy/admin-authorization-history.png[]
+
+. View the configuration policy resoruces created.
+.. Return to the *Results* tab.
+.. Click *View details* and you can see the actual ConfigurationPolicy that governs the resources, in our case a *ClusterRoleBinding*.
++
+image::policy/admin-authorization-configuration-policy.png[]
+
+. View the definition of the cluster role binding.
+.. Click the *Related resources -> admin-authorization* link.
+.. A new tab appears with the Search interface of RHACM open.
+.. In it, is the definition of the *admin-authorization* clusterrolebinding on *my-hosted-cluster*.
++
+image::policy/admin-authorization-search-crb.png[]
+
+Finally, return to the browser tab with the console of *my-hosted-cluster* and refresh the page.
 
 . Now return to your managed cluster console window and refresh the page. You should now be a full cluster administrator.
 
