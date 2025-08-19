@@ -1,18 +1,20 @@
 = Creating Users on the Hosted Cluster
 
 One of the primary use cases for a hosted control planes deployment is to provide multitenancy for organizations so that individuals and teams can have their own clusters with dedicated resources that cannot be infringed upon by other users.
-Unlike a standard deployment of OpenShift, the configuration for authentication and authorization must be performed on the hosting cluster against the `HostedCluster` object.
-In this lab we will step through the process of adding an additional user account for us to login with, grant that user the cluster admin role, and then test that login functionality.
+
+Setting up the identity provider for a hosted control plane is different from the standard deployment of OpenShift, because all control plane pods are all managed by the hosting cluster.
+
+In this module you will set up authorization for the hosted cluster by modifing the HostedCluster custom resource on the hosting cluster.
 
 *Goals*
 
-* Configure authentication for a regular user.
+* Set up httpassword authentication two users.
+* Enable OAuth for the hosted cluster.
 * Test the authentication once the cluster is configured.
 
-////
-NOTE: In this section we will make use of the Showroom terminal provided to the right of the lab guide to ssh over to our bastion host to perform some command line actions against our cluster.
-////
+In later modules, you will use RHACM policies to grant users additional authority over the hosted cluster.
 
+////
 .prepare CLI
 ----
 curl -O https://hcp-cli-download-multicluster-engine.apps.cluster-bb9md.dynamic.redhatworkshops.io/linux/amd64/hcp.tar.gz
@@ -59,10 +61,12 @@ spec:
 ----
 oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig my-hosted-cluster.kube
 ----
+////
 
 [[local-auth]]
 == Configure Authentication
 
+////
 === Gather the Kubeconfig file to interact with the hosted cluster
 
 . Using the Showroom terminal, SSH over to your bastion host at *{bastion_public_hostname}*.
@@ -122,14 +126,34 @@ oc create secret generic htpasswd-mysecret --from-file=htpasswd=myuser.htpasswd 
 image::configure/secret_created.png[link=self, window=blank, width=100%]
 
 . With the secret created we can now return to our hosting cluster's OpenShift console and to perform the next steps.
+////
+
+=== Create secret for htpasswd authentication
+
+. You will use the very simple htpasswd identity provider to create two users, `admin` and `developer`, each with the password `openshift` and grant them access to the hosted cluster.
+.. Create a secret for htpasswd authentication by clicking the *Quick Create* button at the top left of the page.
+.. Select *Import YAML*
+.. Paste the following syntax and press the *Create* button.
++
+[,yaml,role=execute,subs="attributes"]
+----
+kind: Secret
+apiVersion: v1
+metadata:
+  name: htpasswd-development
+  namespace: clusters
+data:
+  htpasswd: YWRtaW46JDJ5JDA1JGRNUmtGN2Y0V2d6L0F2Qk03VXFLbS5vdWNVQmJIUDNEYWk5UWMxay55S2ZCSXpsM0h0UDB5CmRldmVsb3BlcjokMnkkMDUkUUxqaC5VdlNZQ0gyLmM3UC9DQkxNTy9nbDhmMHl3eTViNlBQZC9rMmhQbnpFaDQxeG9LaVcK
+type: Opaque
+----
++
+image::configure/secret_created.png[link=self, window=blank, width=100%]
 
 === Add User to Cluster
 
-. Starting from the *Overview* page of our hosting cluster, on the left-side menu click on *Home* and then *API Explorer*.
-+
-image::configure/home_api_explorer.png[link=self, window=blank, width=100%]
-
-. Use the *Filter by kind* box to search for the term *HostedCluster*. It should return two values, click on the one that shows it's version as *v1beta1*.
+. To add users to the cluster, we need to change the identity provider configuration in the HostedCluster resource.
+.. Starting from the *Overview* page of our hosting cluster *local-cluster*, on the left-side menu click on *Home* and then *API Explorer*.
+.. Use the *Filter by kind* box to search for the term *HostedCluster*. It should return two values, click on the one that shows it's version as *v1beta1*.
 +
 image::configure/api_explore_hostedcluster.png[link=self, window=blank, width=100%]
 
@@ -150,7 +174,7 @@ image::configure/edit_hostedcluster.png[link=self, window=blank, width=100%]
       identityProviders:
       - htpasswd:
           fileData:
-            name: htpasswd-mysecret
+            name: htpasswd-development
         mappingMethod: claim
         name: htpasswd
         type: HTPasswd
@@ -158,20 +182,16 @@ image::configure/edit_hostedcluster.png[link=self, window=blank, width=100%]
 +
 image::configure/add_auth_hostedcluster.png[link=self, window=blank, width=100%]
 
-. Once saved you will get two messages, that the *my-hosted-cluster* object has been updated, and a message that invites you to click the *Reload* button to see the new version. Do that.
-+
-image::configure/saved_auth_hostedcluster.png[link=self, window=blank, width=100%]
-
-. Return to your terminal and run the following command to show the Oauth pods that exist in the *clusters-my-hosted-cluster* namespace. The *oauth-openshift* pods should have all recently restarted.
-+
-[source,sh,role=execute,subs="attributes"]
-----
-oc get pods -n clusters-my-hosted-cluster | grep oauth
-----
+. Your oauth pods on the hosted cluster should now be restarting.
+Validate their restart.
+.. On the left click *Workloads -> Pods*.
+.. Change project to `clusters-my-hosted-cluster` with the dropdown box on the top.
+.. Filter out only the pods with the name `oauth`.
+.. Notice that the pods have been recently restarted.
 +
 image::configure/oauth_pods_restart.png[link=self, window=blank, width=100%]
 
-. Returning to the OpenShift console, scroll up and confirm that your yaml snippet has been applied, and then click the *local-cluster* menu at the top of the page and select *All Clusters* from the dropdown to return to the RHACM Cluster list.
+. Return to the OpenShift console, scroll up and confirm that your yaml snippet has been applied, and then click the *local-cluster* menu at the top of the page and select *All Clusters* from the dropdown to return to the RHACM Cluster list.
 +
 image::configure/return_all_clusters.png[link=self, window=blank, width=100%]
 

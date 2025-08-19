@@ -5,6 +5,7 @@ This lab will familiarize with the benefits and features of hosted virtual Red H
 Hosted control planes (a downstream of the hypershift project) were made generally available, and fully supported, with OpenShift 4.14.
 This capability allows for a central management cluster to host multiple managed clusters in bare metal or virtualized form.
 This greatly increases the efficiency of an OpenShift deployment, saving on physical resource costs, cluster management overhead, and the total time to deploy, doing so is quite expedited.
+HCP clusters are managed slightly differently from a traditional OpenShift cluster, and this lab is desgined to highlight those differences.
 In addition this lab will explore the advantages of using a centralized management solution for the hosted clustersm which is provided by Advanced Cluster Management for Kubernetes (RHACM).
 
 [[terminology]]
@@ -50,7 +51,6 @@ Network, compute, and storage resources that exist in the tenant or end-user clo
 Part of a Hosted cluster.
 An OpenShift Container Platform control plane that runs on the management cluster, which the API endpoint of a hosted cluster exposes.
 The components of a control plane include etcd, the Kubernetes API server, the Kubernetes controller manager, and a VPN.
-
 
 [[value-prop]]
 == Why use hosted control planes?
@@ -103,7 +103,7 @@ image::intro/hcp_v.png[link=self, window=blank, width=100%]
 
 === Fleet Management with Red Hat Advanced Cluster Management
 
-Fleet management is greatly eased by the deployment of https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/about/index[Red Hat Advanced Cluster Management for Kubernetes (RHACM)^] as a part of the solution.
+Fleet management is greatly eased by the deployment of https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.14/html/about/index[Red Hat Advanced Cluster Management for Kubernetes (RHACM)^] as a part of the solution.
 
 Managed clusters depend on the hub cluster for a number of advanced features:
 

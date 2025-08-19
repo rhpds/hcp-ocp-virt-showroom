@@ -2,7 +2,8 @@
 
 Governance defines, monitors, and reports whether your cluster is compliant with a policy.
 A policy manages Kubernetes custom resource definition instances.
-You will use the Red Hat Advanced Cluster Management for Kubernetes policy framework supported policy templates to apply policies managed by these controllers.
+Policies are mapped to managed cluster sets and placement rules, which in turn map to managed clusters.
+You will use the Red Hat Advanced Cluster Management for Kubernetes governance framework and supported policy templates to apply policies managed by these controllers.
 
 Also, a freshly deployed cluster is rather empty.
 Usually you will want at least a few operators installed and maybe authentication as well so that your users can start using the cluster.
@@ -17,21 +18,21 @@ In this lab you will:
 
 Deploying the *OpenShift GitOps* operator is a good idea because it can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
 
-== Set up a ClusterSet
+== Set up a ManagedClusterSet
 
-It is good practice to add hosted clusters to a ClusterSet.
-ClusterSets allow the grouping of cluster resources.
+It is good practice to add hosted clusters to a ManagedClusterSet.
+ManagedClusterSets allow the grouping of cluster resources.
 
 Most significantly, they enables role-based access control management across all of the resources in the group allowing you to and configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
 
-In this lab you create *development* clusters - so our ClusterSet will be named *development*.
+In this lab you create *development* clusters - so our ManagedClusterSet will be named *development*.
 
-While creating our ClusterSet you will also set up Submariner.
+While creating our ManagedClusterSet you will also set up Submariner.
 Submariner provides direct networking between two or more Kubernetes clusters in a given ManagedClusterSet, either on-premises or in the cloud.
 
-=== Create the ClusterSet
+=== Create the ManagedClusterSet
 
-*ManagedClusterSets* are the custom resource definition of ClusterSets.
+*ManagedClusterSets* are the custom resource definition of ManagedClusterSets.
 
 With your web browser, create the cluster set, named *development*.
 
@@ -234,9 +235,9 @@ Note that the policy in the `development-policies` shows as *Compliant* - and th
 
 == Deploy OpenShift GitOps Operator
 
-The OpenShift GitOps Operator is also one of the easiest operators to deploy because it only needs a `Subscription` to install the operator - once the operator is running it automatically configures the OpenShift GitOps deployment on the cluster.
+The OpenShift GitOps Operator is also one of the easiest operators to deploy because it only needs a *Subscription* to install the operator - once the operator is running it automatically configures the OpenShift GitOps deployment on the cluster.
 
-. Create a policy to install the `Subscription` to a cluster:
+. Create a policy to install the *Subscription* to a cluster:
 +
 [source,sh,role=execute]
 ----
@@ -276,10 +277,10 @@ spec:
               sourceNamespace: openshift-marketplace
 ----
 
-. Create a `Placement` selecting the *development* `ManagedClusterSet`
+. Create a *Placement* selecting the *development* *ManagedClusterSet*
 +
 
-. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
+. And finally create a *PlacementBinding* to bind the two together and ensure the *Policy* gets deployed to your *development* clusters:
 +
 
 . This is all that you need to do to install *OpenShift GitOps* on all our development clusters.
@@ -289,11 +290,11 @@ Check that the policy has been deployed:
 
 == Deploy OpenShift Serverless Operator
 
-The OpenShift Serverless Operator is a little bit more complicated because first you need to deploy the operator by creating a `Subscription`.
+The OpenShift Serverless Operator is a little bit more complicated because first you need to deploy the operator by creating a *Subscription*.
 
-Then you need to tell the operator to actually install OpenShift Serverless by creating a `KNativeServing` object.
+Then you need to tell the operator to actually install OpenShift Serverless by creating a *KNativeServing* object.
 
-In addition you want to create a `KNativeEventing` object to enable event driven architectures.
+In addition you want to create a *KNativeEventing* object to enable event driven architectures.
 
 Both of these objects need to live in their own namespace - so in total you need to create 5 resources via the policy:
 
@@ -303,7 +304,7 @@ Both of these objects need to live in their own namespace - so in total you need
 * Namespace: knative-eventing
 * Resource: KNativeEventing
 
-. Create a policy to install the `Subscription` to a cluster:
+. Create a policy to install the *Subscription* to a cluster:
 +
 [source,sh,role=execute]
 ----
@@ -369,15 +370,15 @@ spec:
               namespace: knative-eventing
 ----
 
-. Create a `Placement` selecting the *development* `ManagedClusterSet`
-. And finally create a `PlacementBinding` to bind the two together and ensure the `Policy` gets deployed to your *development* clusters:
+. Create a *Placement* selecting the *development* *ManagedClusterSet*
+. And finally create a *PlacementBinding* to bind the two together and ensure the *Policy* gets deployed to your *development* clusters:
 
 . This is all that you need to do to install _and configure_ *OpenShift Serverless* on all our development clusters.
 +
 Check that the policy has been deployed:
 +
 +
-Note that this time (depending on how quickly you ran the command after creating the policy) policies in the `development-policies` shows as *NonCompliant* - this is because it takes a lot longer to create the subscription - and then create the Serverless resources.
+Note that this time (depending on how quickly you ran the command after creating the policy) policies in the *development-policies* shows as *NonCompliant* - this is because it takes a lot longer to create the subscription - and then create the Serverless resources.
 
 After a few minutes the policy will also switch to *Compliant*.
 
@@ -386,6 +387,6 @@ After a few minutes the policy will also switch to *Compliant*.
 In this module you learned:
 
 * How to configure authentication for your managed clusters
-* how to create a `ManagedClusterSet` to configure similar clusters as a group
+* how to create a *ManagedClusterSet* to configure similar clusters as a group
 * how to create policies for simple operators to be installed on managed clusters
 * how to create a policy for a more complex operator with operands to be installed on managed clusters

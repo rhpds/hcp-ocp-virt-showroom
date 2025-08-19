@@ -1,7 +1,15 @@
 = Scaling the Cluster
 
 One of the major benefits of OpenShift on OpenShift with hosted control planes is how easy it is for the cluster node pools to scale dynamically.
-As resources are consumed in the hosted cluster, the hosting cluster responds to autoscale requests from the cluster to meet the application needs. In this section we will demonstrate this feature.
+As resources are consumed in the hosted cluster, the hosting cluster responds to autoscale requests from the cluster to meet the application needs.
+
+OpenShift Virtualization enables you to dynamically scale your hosted clusters, similarly to how you might have with a cloud hyperscaler like AWS, Azure, etc.
+
+However, your capacity to scale here is limited by the underlying OpenShift Virtualization cluster you are running.
+There are features, not covered here, that allow the hosted cluster to use hyperscaler nodes as part of their cluster.
+This is more often used to access resources unavailable to you through the hosted cluster - perhaps GPUs or other storage types.
+
+In this module, you will deploy an application to the cluster and use the autoscale feature to dynamically scale the cluster to meet the application needs.
 
 *Goals*
 
