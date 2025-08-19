@@ -1,8 +1,8 @@
 * xref:01-lab-details.adoc[]
 * xref:02-deploy.adoc[]
-* xref:03-scale.adoc[]
-* xref:04-users.adoc[]
-* xref:05-policy.adoc[]
+* xref:03-users.adoc[]
+* xref:04-policy.adoc[]
+* xref:05-scale.adoc[]
 * xref:06-upgrade.adoc[]
 // * xref:07-storage.adoc[]
 
