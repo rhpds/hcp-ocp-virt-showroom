@@ -28,23 +28,26 @@ Administrator login:
 image::deploy/console_login.png[link=self, window=blank, width=100%]
 
 . When you login you will be presented with a pop-up window that promotes the ease of managing clusters with RHACM.
-Click the *x* in the corner to close the window.
+.. Click the *x* in the corner to close the window.
 +
 image::deploy/cluster_create_popup.png[link=self, window=blank, width=100%]
 
-. Your initial landing page will be on the ACM default view for All Clusters. Currently the only cluster being managed is the local cluster that we are running on.
+. Your initial landing page will be on the ACM default view for All Clusters.
+Currently the only cluster being managed is the local cluster that we are running on.
 [arabic]
+.. If not, from the left bar click *Infrastructure -> Clusters*.
 .. Click on the *local-cluster* to find out more information about it.
 +
 image::deploy/acm_default_window.png[link=self, window=blank, width=100%]
 
 . The *Overview* tab for the local cluster will show:
 [arabic]
-.. status of the environment
-.. console URL for direct login
-.. hosting environment
-.. current release information
-.. number of nodes and applications currently deployed on the cluster
+.. The type of control plane: *Hub*
+.. Status of the environment: *Ready*
+.. Console URL for direct login: *Console URL*
+.. Infrastructure type: *Bare metal*
+.. Current release information: *Distribution version*
+.. And at the bottom, the number of nodes and applications currently deployed on the cluster
 +
 image::deploy/local_cluster_overview.png[link=self, window=blank, width=100%]
 +
@@ -67,8 +70,8 @@ image::deploy/view_credentials.png[link=self, window=blank, width=100%]
 
 . The *kubevirt-secret* credential is displayed and contains:
 [arabic]
-.. a pull-secret which gives access to the OpenShift registry for cluster installation,
-.. a public ssh key from the bastion host which is useful in managing the hosted cluster once it's deployed.
+.. A pull-secret which gives access to the OpenShift registry for cluster installation,
+.. A public ssh key from the bastion host which is useful in managing the hosted cluster once it's deployed.
 +
 image::deploy/kubevirt_secret_details.png[link=self, window=blank, width=50%]
 
@@ -186,10 +189,10 @@ image::deploy/hosted_cluster_overview.png[link=self, window=blank, width=100%]
 NOTE: Please be patient while the cluster deploys.
 +
 . After 15-20 minutes the cluster deployment will be complete.
-+
-image::deploy/hosted_cluster_deploy_complete.png[link=self, window=blank, width=100%]
+In the meantime, explore the control plane pods and the virtual machines that make up the node pool.
 
-In the meantime, you can explore the control plane pods.
+[[explore-cluster]]
+== Explore the Cluster
 
 === Control Plane Pods and Node Virtual Machines
 
@@ -216,6 +219,9 @@ image::deploy/etcd_pods.png[link=self, window=blank, width=100%]
 .. Notice the *node* it is assigned to.
 The other etcd pods will show that they are assigned to different nodes through anti-affinity rules.
 .. There is also a *pod-disruption budget* set so that the maximum unavailable at any time is 1, or the cluster becomes unavailable.
+.. Scroll down and also notice that *Volumes*, *data* are deployed on a *PVC.*
+You will have to revisit this PVC to make sure that the underlying storage is fast enought for etcd writes in a production environment.
+Ideally, it's on the local storage of the node that the etcd pod is running on, not remote storage.
 +
 image::deploy/etcd0_details.png[link=self, window=blank, width=100%]
 
@@ -246,35 +252,48 @@ image::deploy/vmi_pods.png[link=self, window=blank, width=100%]
 . The provisioning process also deploys virtual machines to implement the node pool.
 While the cluster is provisioning, watch how virtual machines are deployed.
 [arabic]
-.. On the left, click *Virtual machines*.
+.. On the left, click *Infrastructure -> Virtual machines*.
 .. They will each have a unique name, prefixed by the node pool name.
+.. Ideally, they will be deployed on different Nodes, indicated by the numeric suffix in the *worker-cluster-xxxxx-N* name.
 .. They will each, eventually, have an IP address on the pod network.
+Note that this pod IP is in the CIDR network "10.136.0/16" that you set at cluster creation.
+.. Click on one of the virtual machines to bring up its details.
 +
 image::deploy/acm_virtual_machines.png[link=self, window=blank, width=100%]
-.. Explore the virtual machines, noting how some links are marked with a box-arrow, which will take you to the local-cluster's OpenShift Console details about the virtual machine.
 
-[[explore-cluster]]
-== Explore the Cluster
-
-With the cluster deployed, start exploring by scrolling down the page.
-The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
+. The *Virtual machines* page appears.
+[arabic]
+.. Note how some links are marked with a box-arrow, like *Details* Launch, which will open a new browser tab and take you to the local-cluster's OpenShift Console details about the virtual machine.
+.. Note also the *Conditions* of the virtual machine.
+This one is *Ready* and indicates some of its features, like "LiveMigratable."
++
+image::deploy/acm_virtual_machines_details.png[link=self, window=blank, width=100%]
 
 === Cluster Details and Status
 
+When the cluster is fully deployed, start exploring.
+
 The next major section of the overview page provides details about the cluster deployed.
 
-. Examine the details about the cluster.
+. Examine the details about the *my-hosted-cluster*.
+.. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*.
+.. Scroll down to the *Cluster overview* section by scrolling down the page.
+
+The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
 [arabic]
 .. Under *All Cluster* click the left menu item *Infrastructure -> Clusters*.
 .. Now click the *my-hosted-cluster* link.
 .. Scroll down the page to *Cluster details*
-.. *Status* of the cluster
-.. Details about its *infrastructure*
+.. The *Control plane type* is NOT Hub, rather it is *Hosted*.
+.. *Status* of the cluster should eventually be *Ready*.
+.. The *Infrastructure* should be *Red Hat OpenShift Virtualization*.
 .. Where to manage future operations like *upgrades*.
+This can take some time to settle down.
+Be patient.
 . Note access information:
 [arabic,start=4]
-.. *cluster API address*
+.. *cluster API address*, should you want to connect via the command line, or an application.
 .. *console URL*
 .. the *credentials*, which are conveniently hidden for security purposes.
 +
@@ -315,12 +334,13 @@ image::deploy/hosted_cluster_login_prompt.png[link=self, window=blank, width=100
 [arabic]
 .. Notice that the *infrastructure provider is listed as KubeVirt*.
 .. Note that the environment was newly provisioned as there are *59 days left on a default self-support trial*.
+.. Also note that the *Update channel* is *Not available*.
+You will address this in the Upgrade the Hosted Cluster module.
 .. If desired, continue to explore the environment at your leisure.
-When finished, the switch back to the hosting cluster tab to return to the remaining lab tasks.
 +
 image::deploy/hosted_cluster_console_home.png[link=self, window=blank, width=100%]
 
-. Back on the hosted cluster overview, view the cluster summary.
+. Change browser tabs to the *All clusters* page, and view again the *my-hosted-cluster*.
 [arabic]
 .. Scroll down the page to the *Status* section
 .. This is a summary describing the *number of nodes* and *applications* currently running in the cluster.
@@ -353,11 +373,10 @@ Two were configured during the deployment.
 +
 image::deploy/cluster_overview_nodes_tab.png[link=self, window=blank, width=100%]
 
-. A new tab will open and bring you to the compute section of your hosted cluster where you can see the node details.
+. A new tab will open and bring you to the Search section of your hosting Hub cluster where you can see the node details.
+Even though this interface is on the hosting "Hub" cluster, the details in the Search interface are for the node on the *my-hosted-cluster*.
 +
 image::deploy/hosted_cluster_node_details.png[link=self, window=blank, width=100%]
-+
-. Close this browser tab and click the *my-hosted-cluster Overview* tab.
 
 . Examine the node pools.
 [arabic]
@@ -374,6 +393,13 @@ image::deploy/manage_cluster_nodepools.png[link=self, window=blank, width=100%]
 image::deploy/scale_up_nodepool.png[link=self, window=blank, width=100%]
 
 IMPORTANT: *Do not scale the cluster at this time! We will work with node pools later in the lab.*
+
+== Deployment Complete
+
+. By now, your *my-hosted-cluster* hosted cluster deployment should be complete.
+If not, please be patient.
++
+image::deploy/hosted_cluster_deploy_complete.png[link=self, window=blank, width=100%]
 
 == Summary
 
