@@ -76,7 +76,7 @@ oc adm policy add-cluster-role-to-user cluster-admin admin --kubeconfig my-hoste
 +
 image::users/bastion_login.png[link=self, window=blank, width=100%]
 
-. We are going to use the *hcp* CLI, already installed on the bastion host, to gather the Kubeconfig file from our hosted cluster so we can interact with it via CLI. Copy and paste the following syntax into your console and press Enter.
+. you are going to use the *hcp* CLI, already installed on the bastion host, to gather the Kubeconfig file from our hosted cluster so you can interact with it via CLI. Copy and paste the following syntax into your console and press Enter.
 +
 [source,sh,role=execute,subs="attributes"]
 ----
@@ -94,7 +94,7 @@ oc get nodes --kubeconfig my-hosted-cluster.kube
 +
 image::users/oc_get_nodes.png[link=self, window=blank, width=100%]
 
-. With the kubeconfig downloaded and confirmed working we can move onto our next steps. Use the *clear* command to clean up the terminal screen.
+. With the kubeconfig downloaded and confirmed working you can move onto our next steps. Use the *clear* command to clean up the terminal screen.
 
 === Create User Credentials
 
@@ -107,7 +107,7 @@ htpasswd -c -B -b myuser.htpasswd myuser R3dH4t1!
 +
 image::users/terminal_create_htpasswd.png[link=self, window=blank, width=100%]
 
-. Use the `cat` command to list the contents of the newly created htpasswd file. Use the syntax below to view the file's contents. It will include our username, and the hashed value of the password we created.
+. Use the `cat` command to list the contents of the newly created htpasswd file. Use the syntax below to view the file's contents. It will include our username, and the hashed value of the password you created.
 +
 [source,sh,role=execute,subs="attributes"]
 ----
@@ -116,7 +116,7 @@ cat myuser.htpasswd
 +
 image::users/cat_htpasswd.png[link=self, window=blank, width=100%]
 
-. Now we can use this value to create a secret in the cluster, which we will need to be able to log in with our own user account. Copy and paste the following syntax, and press the Enter key.
+. Now you can use this value to create a secret in the cluster, which you will need to be able to log in with our own user account. Copy and paste the following syntax, and press the Enter key.
 +
 [source,sh,role=execute,subs="attributes"]
 ----
@@ -125,7 +125,7 @@ oc create secret generic htpasswd-mysecret --from-file=htpasswd=myuser.htpasswd 
 +
 image::users/secret_created.png[link=self, window=blank, width=100%]
 
-. With the secret created we can now return to our hosting cluster's OpenShift console and to perform the next steps.
+. With the secret created you can now return to our hosting cluster's OpenShift console and to perform the next steps.
 ////
 
 === Create secret for htpasswd authentication
@@ -149,23 +149,23 @@ type: Opaque
 +
 image::users/secret_created.png[link=self, window=blank, width=100%]
 
-=== Add User to Cluster
+=== Enable Identity Provider
 
-. To add users to the cluster, we need to change the identity provider configuration in the HostedCluster resource.
+. To add users to the cluster, you need to change the identity provider configuration in the HostedCluster resource.
 .. Starting from the *Overview* page of our hosting cluster *local-cluster*, on the left-side menu click on *Home* and then *API Explorer*.
-.. Use the *Filter by kind* box to search for the term *HostedCluster*. It should return two values, click on the one that shows it's version as *v1beta1*.
+.. Use the *Filter by kind* box to search for the term *HostedCluster*. It should return two values, click on the one that shows its version as *v1beta1*.
 +
 image::users/api_explore_hostedcluster.png[link=self, window=blank, width=100%]
 
-. This will bring up the HostedCluster Resource details, click on the *Instances* tab to see our *my-hosted-cluster* deployment.
-+
-image::users/hostedcluster_resource.png[link=self, window=blank, width=100%]
-
-. Click on the three-dot menu to the right side of our instance, and select *Edit HostedCluster* from the drop-down menu.
+. This will bring up the HostedCluster Resource details where you will add the *htpasswd* identity provider to the HostedCluster.
+.. Click on the *Instances* tab to see our *my-hosted-cluster* deployment.
+.. Click on the three-dot menu to the right side of our instance, and select *Edit HostedCluster* from the drop-down menu.
 +
 image::users/edit_hostedcluster.png[link=self, window=blank, width=100%]
 
-. Browse to the bottom of the *spec* section and paste in the following syntax to add the *htpasswd* secret as an identity provider. Once complete, click the blue *Save* button.
+. Edit the YAML.
+.. Browse to the bottom of the *spec* section and paste in the following syntax to add the *htpasswd* secret as an identity provider.
+.. Once complete, click the blue *Save* button.
 +
 [source,yaml,role=execute]
 ----
@@ -186,53 +186,52 @@ image::users/add_auth_hostedcluster.png[link=self, window=blank, width=100%]
 Validate their restart.
 .. On the left click *Workloads -> Pods*.
 .. Change project to `clusters-my-hosted-cluster` with the dropdown box on the top.
-.. Filter out only the pods with the name `oauth`.
+.. Filter out only the pods with the name `oauth` and press *Enter*.
 .. Notice that the pods have been recently restarted.
 +
 image::users/oauth_pods_restart.png[link=self, window=blank, width=100%]
 
-. Return to the OpenShift console, scroll up and confirm that your yaml snippet has been applied, and then click the *local-cluster* menu at the top of the page and select *All Clusters* from the dropdown to return to the RHACM Cluster list.
-+
-image::users/return_all_clusters.png[link=self, window=blank, width=100%]
-
-. From the list of clusters that appear, click on *my-hosted-cluster*. Then scroll down to the *Details* section.
-+
-image::users/all_clusters_list.png[link=self, window=blank, width=100%]
-
-. Do you notice that something is now missing? The credentials for the *kubeadmin* login are now missing since that identity provider has been configured.
+. Examine changes to the my-hosted-cluster cluster.
+.. Return to *Infrastructure -> Clusters -> my-hosted-cluster*
+.. Scroll down to the *Details* section.
+.. Notice that something is now missing.
+The credentials for the *kubeadmin* login are now missing.
+A different identity provider has been configured.
 +
 image::users/hosted_cluster_creds_missing.png[link=self, window=blank, width=100%]
-
 
 [[test-auth]]
 == Test Authentication
 
-. Click on the *Console URL* link above to launch a new tab where we can test our newly created user account using the username *myuser*, and the password  *R3dH4t1!*. Notice that there is no option to select htpasswd as our Identity Provider as we would expect. Let's attempt to login anyways and see what happens.
+. Test the changes to the identity provider by logging in to the hosted cluster, *my-hosted-cluster*.
+.. Click on the *Console URL* link to launch a new tab with the *my-hosted-cluster* console.
+.. Log in with username `admin` and the password `openshift`.
++
+NOTE: Notice that there is no option to select htpasswd as our Identity Provider as you would expect. Let's attempt to login anyways and see what happens.
 +
 image::users/cluster_user_login.png[link=self, window=blank, width=100%]
 
-. When we log in, we find ourselves in the *Developer Perspective* which is the default for accounts created with standard user permissions.
+. When you log in, you are in the *Developer Perspective* which is the default for accounts created with standard user permissions for versions of OpenShift prior to 4.19.
 +
 image::users/devel_perspective.png[link=self, window=blank, width=100%]
 
-. Click on the *Skip tour* button to bypass and introduction presented to all new users in OpenShift.
-+
-image::users/skip_tour.png[link=self, window=blank, width=100%]
 
-. Over on the left-side menu, click on the *Developer* menu, and select *Administrator* from the drop-down list.
+. Navigate to the Administrator Perspective.
+.. Click on the *Skip tour* button to bypass and introduction presented to all new users in OpenShift.
+.. On the left-side menu, click on the *Developer* menu, and select *Administrator* from the drop-down list.
 +
 image::users/menu_admin.png[link=self, window=blank, width=100%]
 
-. In the *Administrator* view you will see that we are unable to view practically anything.
-This is because we didn't grant our new user account any additional authority over cluster operations.
+. In the *Administrator* view you will see that you are unable to view practically anything.
+This is because you didn't grant the new user account any additional authority over cluster operations.
 +
 image::users/blank_admin_view.png[link=self, window=blank, width=100%]
 
-In the following module we will use RHACM Governance Policies to grant our new user account additional authority over cluster operations.
+In the following module you will use RHACM Governance Policies to grant our new user account additional authority over cluster operations.
 
 == Summary
 
-In this section we performed configuration of the hosted cluster by creating secrets and updating the HostedCluster custom resource on the hosting cluster, which the hosting cluster then sets up on the hosted cluster.
+In this section you performed configuration of the hosted cluster by creating secrets and updating the HostedCluster custom resource on the hosting cluster, which the hosting cluster then sets up on the hosted cluster.
 This shows how OpenShift on OpenShfit clusters using hosted control planes can be easily managed from the hosting cluster after being deployed.
 
 In further modules you will learn how to manager more hosted cluster features using custom resources on the hosting cluster, such as HostedCluster, ClusterSets, and Governance Policies.
