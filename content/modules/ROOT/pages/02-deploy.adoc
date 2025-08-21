@@ -2,14 +2,16 @@
 
 == Introduction
 
-This module introduces you to the basics of using Advanced Cluster Management for Kubernetes (RHACM) and the Multicluster Engine operator.
+This module introduces you to the basics of using Advanced Cluster Management for Kubernetes (RHACM) and the Multicluster Engine operator to deploy a hosted OpenShift on OpenShift Virtualization cluster.
 
 This module will walk you through the steps required to deploy an OpenShift on OpenShift Virtualization cluster using hosted control planes as the provider.
 
 *Goals*
 
 * Deploy a new OpenShift cluster using a hosted control plane.
-* Review the hosted cluster environment.
+* Explore the cluster to understand the differences between a hosted control plane and a standard control plane.
+* Understand the control plane pods and the virtual machines that make up the node pool.
+* Learn how to find cluster details and status.
 
 As a reminder, here are your credentials for the OpenShift Console:
 
@@ -385,13 +387,13 @@ image::deploy/hosted_cluster_node_details.png[link=self, window=blank, width=100
 .. Click on the *three-dot* menu on the right.
 .. Select the option for *Manage node pool*.
 +
-image::deploy/manage_cluster_nodepools.png[link=self, window=blank, width=100%]
+image::deploy/manage_node_pool.png[link=self, window=blank, width=100%]
 
 . You will be prompted with a pop-up window to *Manage node pool* where you can manually scale the node pool to more than 2 nodes.
 [arabic]
 .. *Close this window* when you are done viewing it.
 +
-image::deploy/scale_up_nodepool.png[link=self, window=blank, width=100%]
+image::deploy/dont_scale_up_nodepool.png[link=self, window=blank, width=100%]
 
 IMPORTANT: *Do not scale the cluster at this time! We will work with node pools later in the lab.*
 
@@ -399,8 +401,8 @@ IMPORTANT: *Do not scale the cluster at this time! We will work with node pools 
 
 . By now, your *my-hosted-cluster* hosted cluster deployment should be complete.
 If not, please be patient.
-+
-image::deploy/hosted_cluster_deploy_complete.png[link=self, window=blank, width=100%]
+// +
+// image::deploy/hosted_cluster_deploy_complete.png[link=self, window=blank, width=100%]
 
 == Summary
 
