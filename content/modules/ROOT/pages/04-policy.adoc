@@ -1,7 +1,7 @@
 = Managing Hosted Clusters using Policies
 
-Governance defines, monitors, and reports whether your cluster is compliant with a policy.
-A policy manages Kubernetes custom resource definition instances.
+RHACM's governance features define, monitor, and report whether your cluster is compliant with a policy.
+A policy manages instances of Kubernetes custom resource definitions.
 Policies are mapped to managed cluster sets and placement rules, which in turn map to managed clusters.
 You will use the Red Hat Advanced Cluster Management for Kubernetes governance framework and supported policy templates to apply policies managed by these controllers.
 
@@ -10,65 +10,120 @@ Usually you will want at least a few operators installed and maybe authenticatio
 
 In this lab you will:
 
+* Set up a cluster set - in OpenShift called a ManagedClusterSet
 * Set up authorizations for administrative users
 * Deploy the following operators to your hosted cluster
 ** OpenShift Pipelines
 ** OpenShift GitOps
 ** OpenShift Serverless
 
-Deploying the *OpenShift GitOps* operator is a good idea because it can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
+Deploying the *OpenShift GitOps* operator can also be used by Red Hat Advanced Cluster Management for Kubernetes to deploy and manage applications.
 
-== Set up a ManagedClusterSet
+== Set up a cluster set
 
-It is good practice to add hosted clusters to a ManagedClusterSet.
-ManagedClusterSets allow the grouping of cluster resources.
+It is good practice to add hosted clusters to a cluster set.
+cluster sets allow the grouping of cluster resources, to ease management of multiple clusters.
 
-Most significantly, they enables role-based access control management across all of the resources in the group allowing you to and configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
+Most significantly, they enables role-based access control management across all of the resources in the group.
 
-In this lab you create *development* clusters - so our ManagedClusterSet will be named *development*.
+This allows you to and configure a number of similar clusters at once rather than having to write policies and applications for each individual cluster.
 
-While creating our ManagedClusterSet you will also set up Submariner.
-Submariner provides direct networking between two or more Kubernetes clusters in a given ManagedClusterSet, either on-premises or in the cloud.
+In this lab you create *development* clusters - so our cluster set will be named *development*.
 
-=== Create the ManagedClusterSet
+// While creating our cluster set you will also set up Submariner.
+// Submariner provides direct networking between two or more Kubernetes clusters in a given cluster set, either on-premises or in the cloud.
 
-*ManagedClusterSets* are the custom resource definition of ManagedClusterSets.
+=== Create the cluster set
 
-With your web browser, create the cluster set, named *development*.
+. Create a namespace called *development-policies* for the cluster set *development* to be bound to.
+.. On the upper right, click the *Quick create* *+* button.
+.. Enter the following YAML to create the *development-policies* namespace.
+.. Click *Create*
++
+[,yaml,role=execute]
+----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: development-policies
+----
 
+. Create the cluster set named *development*.
+.. Click *Infrastructure -> Clusters*
+.. Then click the *Cluster sets* tab
+.. Click the *Create cluster set* button
++
+image::policy/create_cluster_set.png[]
+
+. Name the cluster set *development*
+.. Enter `development` for the *Cluster set name* field.
+.. Click *Create*.
++
+image::policy/create_cluster_set_dialog.png[]
+
+. The *Cluster set created* dialog appears.
+.. Click *Manage resource assignments*.
++
+image::policy/manage_resource_assignments.png[]
+
+. The *Manage resource assignments* dialog appears.
+.. Tick the checkbox for the *my-hosted-cluster*.
+.. Click *Review*
++
+image::policy/add_hosted_cluster_to_cluster_set.png[]
+
+. The *Confirm changes* dialog box appears.
+.. Click *Save*.
++
+image::policy/confirm_changes.png[]
+
+. The *Cluster set -> development* *Overview* page appears.
 Create a binding of this cluster set to a new namespace, named *development-policies*.
+.. Click *Namespace bindings*
++
+image::policy/cluster_set_development_overview.png[]
 
-More than one managed cluster set may be created and bound to the same namespace.
+. The *Namespace bindings* dialog box appears.
+.. Locate the `development-policies` namespace, and select it.
+.. Click *Save*.
++
+image::policy/development-policies_binding.png[]
+
+More than one managed cluster set may be created and bound to the same namespace, and a managed cluster set may be bound to many namespaces.
 
 All policies that appear in the new namespace *development-policies* will apply to the *development* cluster set, and any other cluster sets you may bind to this namespace.
 
-Further, you may create a *placement* to refine the policy assignment to particular managed cluster set, if necessary.
+You may create a *placement* to refine the policy assignment to particular managed cluster set, if necessary.
 
 == Set up Administrative Users
 
 In prior sections of this lab you have configured authentication for your hosted cluster.
+You set up two users, admin and developer.
+But as it stands, they are both regular users, admin has the same permissions as developer.
 
-. In a web browser navigate to the hosted cluster console and log in using *admin* as the username with *openshift* as the password.
-+
-You will notice that *admin* is just a regular user at this point.
+Create a policy that grants cluster-admin privileges to the admin user, for cluster sets which bind to the development-policies namespace.
 
-This is because we have not yet created a *ClusterRoleBinding* granting the *admin* user *ClusterAdmin* permissions.
+Create a *ClusterRoleBinding* which grants the admin user cluster-admin permissions.
 
-. Create a policy to grant *ClusterAdmin* permission to user *admin*.
-This will apply to all clusters in the clusterset "development":
-+
+Further, indicate the particular managed cluster set to which the policy applies with a placement and placementbinding.
+
+. Create a policy
 .. Click on *Governance -> Create Policy*
 +
-image::policy/create-policy.png[]
+image::policy/add-policy.png[]
 
 . The Create Policy screen appears.
-Fill out the form according to the below, and also not that you'll be editing YAML in the black box as well.
+Fill out the form according to the below.
+Note that you will be editing YAML in the black box as well.
+In the *1 Details* screen
+.. Turn on the *YAML* view.
 .. Enter the Name: `admin-authorization`
 .. Select the Namespace: `development-policies`
 .. Click *Next*
 +
 image::policy/policy-form1.png[]
 
+. In the *2 Policy template* screen
 .. Select the Remediation Action: `Enforce`
 .. Paste the following policy-tempalte YAML in the black box, following the existing YAML.
 This defines a policy-template that's not predefined for you.
@@ -77,7 +132,7 @@ However, you will notice that the form on the left updates to match the policy-t
 +
 image::policy/policy-form2.png[]
 +
-[source,sh,role=execute]
+[,yaml,role=execute]
 ----
   policy-templates:
   - objectDefinition:
@@ -107,31 +162,30 @@ image::policy/policy-form2.png[]
               name: admin
 ----
 
-. A *placement* is optional, and is more fine grained.
+. Screen *3 Placement* appears.
+A *placement* is more fine grained.
 It enables particular clusters in a cluster set to be assigned policies.
-Otherwise, all clusters in the managed cluster set will be assigned the policy.
-
 .. Click *New placement* and examine the new YAML in the black box.
 You will notice that both a *placement* and a *placementbinding* have been created.
 +
 image::policy/policy-form3.png[]
 
-. *Policy annotations* may be skipped because we are not associating our policies with any security standards in this lab.
+. Screen *4 Policy annotations* may be skipped because you are not associating our policies with any security standards in this lab.
 .. Click *Next*
 +
 image::policy/policy-form4.png[]
 
-. Review your policy.
+. Review your policy in the *5 Review* screen.
 .. Click *Submit* when you're done reviewing.
 +
 image::policy/policy-form5.png[]
 
-. The *admin-authorization* screen appears.
-.. Note that your policy was *Created*, that you have a green check next to *Cluster violations* indicating no violations,
+. The *Policies* *admin-authorization* *Details* screen appears.
+.. Note that your policy was *Created*, that you have a green check next to *Cluster violations* indicating no violations.
 +
-image::policy/admin-authorization.png[]
+image::policy/admin-authorization-details.png[]
 
-. Find more details about the application of the policy by clicking the *Results* tab.
+. Find more details about the the policy by clicking the *Results* tab.
 .. Note that the *clusterrolebindings [admin-authorization] found as specified*.
 +
 image::policy/admin-authorization-results.png[]
@@ -142,7 +196,7 @@ image::policy/admin-authorization-results.png[]
 image::policy/admin-authorization-history.png[]
 
 . View the configuration policy resoruces created.
-.. Return to the *Results* tab.
+.. Click the back button on your browser to return to the *Results* tab.
 .. Click *View details* and you can see the actual ConfigurationPolicy that governs the resources, in our case a *ClusterRoleBinding*.
 +
 image::policy/admin-authorization-configuration-policy.png[]
@@ -154,27 +208,137 @@ image::policy/admin-authorization-configuration-policy.png[]
 +
 image::policy/admin-authorization-search-crb.png[]
 
-Finally, return to the browser tab with the console of *my-hosted-cluster* and refresh the page.
+. Finally, validate that the clusterrolebinding was created on *my-hosted-cluster* by return to console of *my-hosted-cluster* and refreshing the page.
+.. Click *Infrastructure -> Cluster -> my-hosted-cluster*.
++
+image::policy/cluster_list.png[]
 
 . Now return to your managed cluster console window and refresh the page.
-You should now be a full cluster administrator.
+.. Click the *Console URL* link.
++
+image::policy/console_url_link.png[]
+
+NOTE: In case you were logged out, your username is `admin` and your password is `openshift`.
+
+. You should now be a full cluster administrator.
+.. The *Home* page appears with a robust set of features and data.
++
+image::policy/my-hosted-cluster-admin-home.png[]
 
 == Deploy Operators
 
-=== Deploy OpenShift Pipelines Operator
+You will use Policies to deploy OpenShift Operators on your clusters.
 
-The OpenShift Pipelines Operator is one of the easiest operators to deploy because it only needs a *Subscription* to install the operator.
-Once the operator is running it automatically configures the OpenShift Pipelines deployment on the cluster.
+Policies are be used to ensure presence (or absence) of Kubernetes Resources on target clusters.
 
-Policies can be used to ensure presence (or absence) of Kubernetes Resources on target clusters.
+A *Policy* usually consists of three parts:
+. The *Policy* itself which outlines which resources should (or should not) be on the target clusters.
+. A *Placement* which selects the target clusters.
+. A *PlacementBinding*, binding the two together.
 
-A *Policy* usually consists of three parts: The *Policy* itself which outlines which resources should (or should not) be on the target clusters. A *Placement* which selects the target clusters and finally a *PlacementBinding* binding the two together.
+Note that you could re-use your *Placement* object for multiple policies.
+But it may be easier to manage to have a separate placement for each policy to enable easier changes in the future.
 
-Note that you could re-use your *Placement* object for multiple policies - but it may be easier to manage to have a separate placement for each policy to enable easier changes in the future.
+=== Deploy OpenShift GitOps Operator
+
+The OpenShift GitOps Operator is one of the easier operators to deploy because it only needs a *Subscription* to install the operator.
+Once the operator is running it automatically configures the OpenShift GitOps deployment on the cluster.
 
 . Create a policy to install the *Subscription* to a cluster:
+.. Click *Governance -> Policies* and click *Create Policy*.
 +
-[source,sh,role=execute]
+image::policy/governance_policies_create_policy.png[]
+
+. The *Create policy* screen opens.
+.. Activate the *YAML* view.
+.. Paste the following policy-tempalte YAML in the black box.
+.. Notice how the form fields update to match the policy-template.
+.. Click *Next*
++
+image::policy/gitops-form1.png[]
++
+[,yaml,role=execute]
+----
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: openshift-gitops-installed
+  namespace: development-policies
+spec:
+  remediationAction: enforce
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policy.open-cluster-management.io/v1
+      kind: ConfigurationPolicy
+      metadata:
+        name: openshift-gitops-installed
+      spec:
+        remediationAction: enforce
+        pruneObjectBehavior: DeleteIfCreated
+        severity: medium
+        object-templates:
+        - complianceType: musthave
+          objectDefinition:
+            apiVersion: operators.coreos.com/v1alpha1
+            kind: Subscription
+            metadata:
+              name: openshift-gitops-operator
+              namespace: openshift-operators
+            spec:
+              channel: gitops-1.17
+              installPlanApproval: Automatic
+              name: openshift-gitops-operator
+              source: redhat-operators
+              sourceNamespace: openshift-marketplace
+----
+
+. In the next screen, *2 Policy templates*, observe how the form fields update to match the policy-template.
+.. Click *Next*.
++
+image::policy/gitops-form2.png[]
+
+. In the *3 Placement* screen, you create the placement and the placement binding.
+It was not in the YAML above.
+.. Click *New placement*.
+.. Allow the default placement name.
+.. Select the *development* cluster set.
+.. Click *Next*.
++
+image::policy/gitops-form3.png[]
+
+. Screen *4 Policy annotations* can be skipped because we are not using any annotations.
+.. Click *Next*.
+
+. Review the policy in the *5 Review* screen.
+.. Click *Submit*.
++
+image::policy/gitops-form4.png[]
+
+. The *Policy* *openshift-gitops-installed* details appears.
+.. You can track the progress of the policy here, through the subsequent screens, if you wish.
+
+This is all that you need to do to install *OpenShift GitOps* on all our development clusters.
+
+=== Deploy OpenShift Pipelines Operator
+
+The OpenShift Pipelines Operator is also one of the easier operators to deploy because it only needs a *Subscription* to install the operator.
+Once the operator is running it automatically configures the OpenShift Pipelines deployment on the cluster.
+
+. Create a policy to install the *Subscription* to a cluster.
+.. Click *Governance -> Policies* and click *Create Policy*.
++
+image::policy/governance_policies_create_policy.png[]
+
+. Follow the same series of forms and procedures as you did in the prior example.
+.. Activate the *YAML* view.
+.. Paste the following policy-tempalte YAML in the black box.
+.. Notice how the form fields update to match the policy-template.
+.. Click *Next*
++
+image::policy/pipelines1.png[]
++
+[,yaml,role=execute]
 ----
 ---
 apiVersion: policy.open-cluster-management.io/v1
@@ -211,10 +375,33 @@ spec:
               sourceNamespace: openshift-marketplace
 ----
 
-
-. This is all that you need to do to install *OpenShift Pipelines* on all our development clusters.
+. In the next screen, *2 Policy templates*, observe how the form fields update to match the policy-template.
+.. Click *Next*.
 +
-Check that the policy has been deployed:
+image::policy/pipelines2.png[]
+
+. In the *3 Placement* screen, you create the placement and the placement binding.
+It was not in the YAML above.
+.. Click *New placement*.
+.. Allow the default placement name.
+.. Select the *development* cluster set.
+.. Click *Next*.
++
+image::policy/pipelines4.png[]
+
+. Screen *4 Policy annotations* can be skipped because we are not using any annotations.
+.. Click *Next*.
+
+. Review the policy in the *5 Review* screen.
+.. Click *Submit*.
++
+image::policy/pipelines5.png[]
+
+. The *Policy* *openshift-pipelines-installed* details appears.
+.. You can track the progress of the policy here, through the subsequent screens, if you wish.
+
+This is all that you need to do to install *OpenShift Pipelines* on all our development clusters.
+
 
 ////
 +
@@ -230,65 +417,10 @@ cluster2               development-policies.openshift-pipelines-installed   enfo
 development-policies   openshift-pipelines-installed                        enforce              Compliant          3m12s
 ----
 +
-Note that the policy in the `development-policies` shows as *Compliant* - and that the policy has been copied to the one cluster in your `ManagedClusterSet` - *cluster2*.
-////
+Note that the policy in the `development-policies` shows as *Compliant* - and that the policy has been copied to the one cluster in your `cluster set` - *cluster2*.
 
-== Deploy OpenShift GitOps Operator
 
-The OpenShift GitOps Operator is also one of the easiest operators to deploy because it only needs a *Subscription* to install the operator - once the operator is running it automatically configures the OpenShift GitOps deployment on the cluster.
-
-. Create a policy to install the *Subscription* to a cluster:
-+
-[source,sh,role=execute]
-----
-cat << EOF | oc apply -f -
----
-apiVersion: policy.open-cluster-management.io/v1
-kind: Policy
-metadata:
-  name: openshift-gitops-installed
-  namespace: development-policies
-spec:
-  remediationAction: enforce
-  disabled: false
-  policy-templates:
-  - objectDefinition:
-      apiVersion: policy.open-cluster-management.io/v1
-      kind: ConfigurationPolicy
-      metadata:
-        name: openshift-gitops-installed
-      spec:
-        remediationAction: enforce
-        pruneObjectBehavior: DeleteIfCreated
-        severity: medium
-        object-templates:
-        - complianceType: musthave
-          objectDefinition:
-            apiVersion: operators.coreos.com/v1alpha1
-            kind: Subscription
-            metadata:
-              name: openshift-gitops-operator
-              namespace: openshift-operators
-            spec:
-              channel: gitops-1.17
-              installPlanApproval: Automatic
-              name: openshift-gitops-operator
-              source: redhat-operators
-              sourceNamespace: openshift-marketplace
-----
-
-. Create a *Placement* selecting the *development* *ManagedClusterSet*
-+
-
-. And finally create a *PlacementBinding* to bind the two together and ensure the *Policy* gets deployed to your *development* clusters:
-+
-
-. This is all that you need to do to install *OpenShift GitOps* on all our development clusters.
-+
-Check that the policy has been deployed:
-+
-
-== Deploy OpenShift Serverless Operator
+=== Deploy OpenShift Serverless Operator
 
 The OpenShift Serverless Operator is a little bit more complicated because first you need to deploy the operator by creating a *Subscription*.
 
@@ -370,7 +502,7 @@ spec:
               namespace: knative-eventing
 ----
 
-. Create a *Placement* selecting the *development* *ManagedClusterSet*
+. Create a *Placement* selecting the *development* *cluster set*
 . And finally create a *PlacementBinding* to bind the two together and ensure the *Policy* gets deployed to your *development* clusters:
 
 . This is all that you need to do to install _and configure_ *OpenShift Serverless* on all our development clusters.
@@ -381,12 +513,32 @@ Check that the policy has been deployed:
 Note that this time (depending on how quickly you ran the command after creating the policy) policies in the *development-policies* shows as *NonCompliant* - this is because it takes a lot longer to create the subscription - and then create the Serverless resources.
 
 After a few minutes the policy will also switch to *Compliant*.
+////
+
+=== Verify operator deployment
+
+You will log in to your hosted cluster *my-hosted-cluster* and check that the GitOps and Pipelines operators are installed.
+
+. Switch to the *my-hosted-cluster* OpenShift Console.
+.. Your tab for *my-hosted-cluster* might already be open.
+.. If it's not open, click *Infrastructure -> Clusters* and select *my-hosted-cluster*.
++
+image::policy/cluster_list.png[]
+
+. Now return to your *my-managed-cluster* managed cluster details to open the OpenShift Console.
+.. Click the *Console URL* link.
++
+image::policy/console_url_link.png[]
+
+. Identify the installed operators.
+.. On the left bar, click *Operators -> Installed Operators*.
++
+image::policy/operators_installed.png[]
 
 == Summary
 
 In this module you learned:
 
 * How to configure authentication for your managed clusters
-* how to create a *ManagedClusterSet* to configure similar clusters as a group
+* how to create a *cluster set* to configure similar clusters as a group
 * how to create policies for simple operators to be installed on managed clusters
-* how to create a policy for a more complex operator with operands to be installed on managed clusters
