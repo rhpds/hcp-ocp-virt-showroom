@@ -39,17 +39,4 @@ An administrator user has been configured, and login is available with the follo
 * *User:* `{openshift_cluster_admin_username}`
 * *Password:* `{openshift_cluster_admin_password}`
 
-=== Bastion Access
-
-A RHEL bastion host is available with common utilities pre-installed and OpenShift command line access pre-configured {bastion_public_hostname}.
-
-For SSH access to the bastion when needed, use the following credentials:
-
-* *User:* `{bastion_ssh_user_name}`
-* *Password:* `{bastion_ssh_password}`
-
-== Final Lab Environment
-
-When this lab is complete, the following will be provisioned:
-
-image::01-lab-details/architecture.png[link=self, width=100%]
+NOTE: Bastion access for this lab is unnecessary. There are only two command line activities in this lab, and both are done in the OpenShift command line terminal.
