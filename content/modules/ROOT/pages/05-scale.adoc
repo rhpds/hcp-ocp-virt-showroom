@@ -22,7 +22,7 @@ In this module, you will deploy an application to the cluster and use the autosc
 == Deploy an Application to your Hosted Cluster
 
 . If you're not already on your hosted cluster, find the hosted cluster in the Advanced Cluster Management Console and log in.
-[loweralpha]
+[arabic]
 .. On the upper left drop-down menu, select *All Clusters*.
 .. On the left bar, Select *Infrastructure -> Clusters*.
 .. Click *my-hosted-cluster*.
@@ -30,10 +30,12 @@ In this module, you will deploy an application to the cluster and use the autosc
 image::scale/go_to_my-hosted-cluster.png[link=self, window=blank, width=100%]
 
 . Navigate to the *my-hosted-cluster* page.
-[loweralpha]
+[arabic]
 .. Scroll down to the *Details* section.
+... If you have created users per this lab, there will be no credentials available in the RHACM console.
+Use username `admin` and password `openshift`.
+... If you have NOT created users per this lab, the RHACM console and copy the Username & Password with the *Reveal Credentials* link.
 .. Click the *Console URL* link to open a new tab with the hosted cluster console.
-.. If you're not already logged in, return to the RHACM console and copy the Username & Password with the *Reveal Credentials* link.
 +
 image::scale/route_to_my-hosted-cluster.png[link=self, window=blank, width=100%]
 
@@ -41,8 +43,8 @@ Create a deployment of the reversewords application in the namespace *default*.
 This application will have six replicas, each requiriting 1Gi of memory.
 The hosted cluster doesn't have sufficient memory capacity at this time to deploy the application.
 We will soon scale up the cluster to acommodate them.
-[loweralpha]
-.. On the upper right *+* button, select *Import YAML*.
+[arabic]
+.. On the upper right *Quick create* *+* button, select *Import YAML*.
 .. Copy and paste the following YAML into the *Import YAML* dialog box.
 .. Click *Create*.
 +
@@ -81,7 +83,7 @@ image::scale/app_quick_create.png[link=self, window=blank, width=100%]
 The Deployment details page appears.
 
 . Investigate the reason that the pods have not deployed.
-[loweralpha]
+[arabic]
 .. Click on the *Pods* tab.
 .. Click on of the :Hourglass: Pending links.
 .. The message indicates that the two nodes that are available to deploy application have *Insufficient memory* achieve application deployment.
@@ -97,7 +99,7 @@ Now that the application is deployed and running, set up autoscaling.
 If autoscaling is not already enabled, it must be enabled.
 
 . Return to the *Clusters > my-hosted-cluster > Overview* page.
-[loweralpha]
+[arabic]
 .. Click on the browser tab to return to the *hosting cluster*.
 .. On the left bar, select *Infrastructure -> Clusters*, and from the *Cluster list* click *my-hosted-cluster*.
 .. Observe that there are still just two nodes in *my-node-pool*, but also see that *Autoscaling* is set to *False*.
@@ -106,13 +108,13 @@ image::scale/cluster_node_pools.png[link=self, window=blank, width=100%]
 
 
 . Use the OpenShift Console Web Terminal
-[loweralpha]
+[arabic]
 .. SSH to the bastion host once again if needed.
 +
 image::scale/webterminal_start.png[link=self, window=blank, width=100%]
 
 . To enable Autoscaling for *my-node-pool*, apply the following patch to disable the static replica count and enable autoscaling.
-[loweralpha]
+[arabic]
 .. Copy and paste the following command into the OpenShift command line terminal, and press the enter key.
 +
 [source,sh,role=execute,subs="attributes"]
@@ -139,28 +141,40 @@ Over time, *Status* will change from *Pending* to *Ready*.
 image::scale/nodepool_updating.png[link=self, window=blank, width=100%]
 
 . Virtual Machines are created on the hosting cluster to support the node pool, as triggered by the Pods in pending for the application.
-[loweralpha]
+[arabic]
 .. On the left bar, click *Virtual Machines*.
 .. Watch as VMs are created and adopted by the hosted cluster *my-hosted-cluster* as nodes.
 +
 image::scale/nodepool_vms.png[link=self, window=blank, width=100%]
-
++
+NOTE: There are usually five VMs created in total.
+This is because memory has already been consumed by the operators we installed.
++
 . View the application pods and pod details to verify application deployment complete.
-[loweralpha]
+[arabic]
 .. Return to the browser tab of the hosted cluster, where the application is currently running.
 .. On the left bar, click *Workloads -> Deployments*.
 .. Click on the link *6 of 6 pods*
 +
 image::scale/deployments_6_of_6.png[link=self, window=blank, width=100%]
++
+[NOTE]
+.Awaiting hosted nodes
+====
+It might take some time for the hosted cluster to detect the VMs as nodes.
+Watch the virtual machines become nodes in the *my-node-pool* *Compute -> Nodes* page.
 
+image::scale/await_hosted_nodes.png[link=self, window=blank, width=100%]
+====
++
 . Find out which nodes each of the pods are running on by managing the columns displayed.
-[loweralpha]
+[arabic]
 .. Select the *Manage Columns* button.
 +
 image::scale/manage_columns.png[link=self, window=blank, width=100%]
 
 . Indicate the columns to display.
-[loweralpha]
+[arabic]
 .. Uncheck *Owner*
 .. Check *Node*.
 .. Click *Save*.
@@ -168,10 +182,23 @@ image::scale/manage_columns.png[link=self, window=blank, width=100%]
 image::scale/manage_columns_details.png[link=self, window=blank, width=100%]
 
 . The pods and the nodes they are deployed on are now displayed.
-[loweralpha]
+[arabic]
 .. Sort the list by *Node* to see how many nodes are involved support the application.
 +
 image::scale/pods_nodes_list.png[link=self, window=blank, width=100%]
++
+[NOTE]
+.Auto Scale Down
+====
+In this example, the autoscaler initially created three additional virtual machines to deploy the application.
+We saw in the previous image that the application pods were deployed to only two nodes.
+Once the application was fully deployed, the three virtual machines created were excessive to handle the application's memory needs.
+So, eventually, the autoscaler will scale down the number of additional nodes to two in the hosted cluster, leaving us with four total nodes, saving considerable resources.
+
+Notice also that the two original nodes are not affected.
+
+image::scale/auto_scale_down.png[link=self, window=blank, width=100%]
+====
 
 Next, we will clean up the application and scale down the cluster.
 
@@ -181,14 +208,14 @@ Next, we will clean up the application and scale down the cluster.
 Once the additional resources are no longer needed to support the application, the the number of nodes in the hosted cluster can dynamically scale back down to free up resources in the hosting cluster.
 
 . Clean up the application to free up resources.
-[loweralpha]
+[arabic]
 .. Select the *Actions* drop-down menu from upper right.
 .. From the drop-down menu select *Delete Deployment*.
 +
 image::scale/delete_deployment.png[link=self, window=blank, width=100%]
 
 . Confirm deletion of the the *reversewords* deployment all dependent objects.
-[loweralpha]
+[arabic]
 .. Click the red *Delete* button.
 +
 image::scale/confirm_delete.png[link=self, window=blank, width=100%]
@@ -198,12 +225,12 @@ image::scale/confirm_delete.png[link=self, window=blank, width=100%]
 image::scale/no_resources_found.png[link=self, window=blank, width=100%]
 
 . Return to the hosting cluster tab.
-[loweralpha]
+[arabic]
 .. Close the tab that shows the console of *my-hosted-cluster*.
-.. Return to the hosting cluster *local-cluster - Overview*.
+.. Return to the hosting cluster view of *my-hosted-cluster*.
 
-. There are still three nodes available.
-[loweralpha]
+. There are still four nodes available.
+[arabic]
 .. Click on the *Nodes* tab at the top of the screen.
 +
 image::scale/nodes_menu.png[link=self, window=blank, width=100%]
@@ -217,18 +244,18 @@ image::scale/nodes_menu_2.png[link=self, window=blank, width=100%]
 ====
 When autoscaling is enabled you will lose the ability to scale worker nodes manually.
 
-However, if your cluster had not been configured autoscaling, then it is perfectly acceptable to manually scale it up to three and back down to two nodes to provide the resources you need.
+However, *if your cluster had not been configured autoscaling,* then it is perfectly acceptable to manually scale it up to three and back down to two nodes to provide the resources you need.
 Follow these next steps to perform that action if necessary.
 
 . Manage the NodePool
-[loweralpha]
+[arabic]
 .. Click on the three-dot menu to the right side of the *Cluster node pools* section
 .. When the drop down menu appears click on *Manage node pool.*
 +
 image::scale/manage_node_pool.png[link=self, window=blank, width=100%]
 
 . Set number of nodes.
-[loweralpha]
+[arabic]
 .. On the menu that appears, set the number of nodes to two.
 .. Click the blue *Update* button.
 +
