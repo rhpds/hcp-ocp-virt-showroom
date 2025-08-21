@@ -239,6 +239,19 @@ image::scale/nodes_menu.png[link=self, window=blank, width=100%]
 +
 image::scale/nodes_menu_2.png[link=self, window=blank, width=100%]
 
+. Turn off the autoscaler and set the number of replicas to 2.
+.. On the upper right, click on the *>_* button, which is the OpenShift command line terminal.
+.. In the terminal window that opens, paste the following text command.
++
+[,sh,role=execute,subs="attributes"]
+----
+oc -n clusters patch nodepool my-node-pool --type=json -p '[{"op": "remove", "path": "/spec/autoScaling"},{"op":"add", "path": "/spec/replicas", "value": 2}]'
+----
++
+image::scale/patch_node_pool_autoscale_off.png[link=self, window=blank, width=100%]
+
+The cluster will immediately scale down to two nodes.
+
 [NOTE]
 .Manually scaling the NodePool
 ====
