@@ -281,7 +281,7 @@ When the cluster is fully deployed, start exploring.
 The next major section of the overview page provides details about the cluster deployed.
 
 . Examine the details about the *my-hosted-cluster*.
-.. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*.
+.. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*. +
 The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
 [arabic]
@@ -396,8 +396,8 @@ IMPORTANT: *Do not scale the cluster at this time! We will work with node pools 
 
 . By now, your *my-hosted-cluster* hosted cluster deployment should be complete.
 If not, please be patient.
-// +
-// image::deploy/hosted_cluster_deploy_complete.png[link=self, window=blank, width=100%]
++
+image::deploy/deployment_complete.png[link=self, window=blank, width=100%]
 
 == Summary
 
