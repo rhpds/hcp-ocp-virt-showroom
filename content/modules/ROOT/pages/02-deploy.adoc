@@ -227,8 +227,11 @@ Ideally, it's on the local storage of the node that the etcd pod is running on, 
 +
 image::deploy/etcd0_details.png[link=self, window=blank, width=100%]
 
-. Click the browser *back button* to return to the list of pods available in the *clusters-my-hosted-cluster* project.
+NOTE: The virtual machines are likely not started yet.  Please be patient.
+
+. Now examine the virtual machines created by this deployment of a hosted cluster.
 [arabic]
+.. Click the browser *back button* to return to the list of pods available in the *clusters-my-hosted-cluster* project.
 .. Delete the label filter for *etcd-0* pod by clicking the *x*.
 .. Enter a new label filter: `kubevirt.io=virt-launcher`
 .. The pods named *virt-launcher* appear.
@@ -279,14 +282,11 @@ The next major section of the overview page provides details about the cluster d
 
 . Examine the details about the *my-hosted-cluster*.
 .. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*.
-.. Scroll down to the *Cluster overview* section by scrolling down the page.
 
 The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
 [arabic]
-.. Under *All Cluster* click the left menu item *Infrastructure -> Clusters*.
-.. Now click the *my-hosted-cluster* link.
-.. Scroll down the page to *Cluster details*
+.. Scroll down the page to cluster *Details*
 .. The *Control plane type* is NOT Hub, rather it is *Hosted*.
 .. *Status* of the cluster should eventually be *Ready*.
 May currently be *Creating* or *Importing*.
@@ -294,8 +294,8 @@ May currently be *Creating* or *Importing*.
 .. Where to manage future operations like *upgrades*.
 This can take some time to settle down.
 Be patient.
+
 . Note access information:
-[arabic,start=4]
 .. *cluster API address*, should you want to connect via the command line, or an application.
 .. *console URL*
 .. the *credentials*, which are conveniently hidden for security purposes.
@@ -303,13 +303,11 @@ Be patient.
 image::deploy/hosted_cluster_details.png[link=self, window=blank, width=100%]
 
 . To display the credentials:
-[arabic]
 .. Click the *eye icon*, it will provide the information for the *kubeadmin* user and a randomly generated password.
 +
 image::deploy/reveal_creds.png[link=self, window=blank, width=100%]
 
 . To access the console:
-[arabic]
 .. Click on the *copy icon next to the password* to save it to the clipboard.
 .. Click on the *Console URL* right above that.
 +
@@ -317,16 +315,14 @@ image::deploy/copy_password.png[link=self, window=blank, width=100%]
 
 . A new tab will open.
 The browser security certificate prompts will appear.
-[arabic]
 .. Click the *Advanced* button.
 .. Then the secondary warning, which differs from browser to browser.
 +
 image::deploy/browser_security.png[link=self, window=blank, width=100%]
 +
-NOTE: This must be done twice.
+NOTE: This usually must be done twice.
 
 . Once certificate prompts are bypassed, the login to the OpenShift console appears.
-[arabic]
 .. Enter the username `kubeadmin`.
 .. Paste the *password* from the clipboard.
 .. Click *Log in*.
@@ -334,7 +330,6 @@ NOTE: This must be done twice.
 image::deploy/hosted_cluster_login_prompt.png[link=self, window=blank, width=100%]
 
 . The OpenShift console home page appears, just as if logging into any other OpenShift cluster.
-[arabic]
 .. Notice that the *infrastructure provider is listed as KubeVirt*.
 .. Note that the environment was newly provisioned as there are *59 days left on a default self-support trial*.
 .. Also note that the *Update channel* is *Not available*.
@@ -376,13 +371,14 @@ Two were configured during the deployment.
 +
 image::deploy/cluster_overview_nodes_tab.png[link=self, window=blank, width=100%]
 
-. A new tab will open and bring you to the Search section of your hosting Hub cluster where you can see the node details.
-Even though this interface is on the hosting "Hub" cluster, the details in the Search interface are for the node on the *my-hosted-cluster*.
-+
-image::deploy/hosted_cluster_node_details.png[link=self, window=blank, width=100%]
+. A new tab will open and bring you to the node details section on your my-hosted-cluster.
+Convenient!
+.. Close the browser tab to return to the *my-hosted-cluster - Overview*.
 
 . Examine the node pools.
 [arabic]
+.. Just in case you're lost - on the *Infrastructure -> Clusters -> my-hosted-cluster* page, scroll down until you see the *Cluster node pools* section.
+.. Then click on the *three-dot* menu on the right and select *Manage node pool*.
 .. Scroll about halfway down the page, near the *Control plane pods* link, and the *Cluster node pools* section.
 .. Click on the *three-dot* menu on the right.
 .. Select the option for *Manage node pool*.
