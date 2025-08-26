@@ -148,8 +148,9 @@ image::upgrade/node_pool_upgrade_complete.png[link=self, window=blank, width=100
 In this module you explored how the upgrade process of an OpenShift on OpenShift with hosted control planes cluster differs from a standalone deployment.
 After exploring your various upgrade options you kicked off an upgrade process to the latest version of OpenShift.
 
+////
 . A new tab will open and bring you to the Search section of your hosting Hub cluster where you can see the node details.
 Even though this interface is on the hosting "Hub" cluster, the details in the Search interface are for the node on the *my-hosted-cluster*.
 +
 image::deploy/hosted_cluster_node_details.png[link=self, window=blank, width=100%]
-
+////
