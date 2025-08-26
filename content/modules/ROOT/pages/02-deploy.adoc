@@ -282,7 +282,6 @@ The next major section of the overview page provides details about the cluster d
 
 . Examine the details about the *my-hosted-cluster*.
 .. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*.
-
 The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
 [arabic]
