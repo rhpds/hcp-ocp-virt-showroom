@@ -217,9 +217,9 @@ image::policy/cluster_list.png[]
 .. Click the *Console URL* link.
 +
 image::policy/console_url_link.png[]
-
++
 NOTE: In case you were logged out, your username is `admin` and your password is `openshift`.
-
++
 . You should now be a full cluster administrator.
 .. The *Home* page appears with a robust set of features and data.
 +

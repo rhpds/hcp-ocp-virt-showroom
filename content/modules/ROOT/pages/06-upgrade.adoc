@@ -69,7 +69,7 @@ Now that you have explored the many methods that are available of how to begin y
 
 . Open the *Upgrade version* dialog box
 .. Starting from the *Cluster list*, click on the hosted cluster *my-hosted-cluster*'s link for *Upgrade available*.
-
++
 image::upgrade/upgrade_available.png[link=self, window=blank, width=100%]
 
 . A new window appears with a drop-down menu allowing you to select from a number of acceptable release versions, from the latest z release of your current version, to the latest version of OpenShift available.
