@@ -57,7 +57,7 @@ image::upgrade/cluster_details_upgrade.png[link=self, window=blank, width=100%]
 image::upgrade/cluster_list_upgrade.png[link=self, window=blank, width=100%]
 
 . You may also upgrade your fleet simultaneously.
-.. If you selectt he check box next to each cluster to upgrade, you can select upgrade channels for each, and schedule them all to upgrade simultaneously, or at specific intervals.
+.. If you select the check box next to each cluster to upgrade, you can select upgrade channels for each, and schedule them all to upgrade simultaneously, or at specific intervals.
 +
 image::upgrade/multi_cluster_upgrade.png[link=self, window=blank, width=100%]
 
