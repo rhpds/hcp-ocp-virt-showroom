@@ -193,7 +193,7 @@ Validate their restart.
 image::users/oauth_pods_restart.png[link=self, window=blank, width=100%]
 
 . Examine changes to the my-hosted-cluster cluster.
-.. Return to *Infrastructure -> Clusters -> my-hosted-cluster*
+.. Return to *All Clusters -> Infrastructure -> Clusters -> my-hosted-cluster*
 .. Scroll down to the *Details* section.
 .. Notice that something is now missing.
 The credentials for the *kubeadmin* login are now missing.
