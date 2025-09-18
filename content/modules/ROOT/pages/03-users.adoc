@@ -153,7 +153,8 @@ image::users/secret_created.png[link=self, window=blank, width=100%]
 
 . To add users to the cluster, you need to change the identity provider configuration in the HostedCluster resource.
 .. Starting from the *Overview* page of our hosting cluster *local-cluster*, on the left-side menu click on *Home* and then *API Explorer*.
-.. Use the *Filter by kind* box to search for the term *HostedCluster*. It should return two values, click on the one that shows its version as *v1beta1*.
+.. Use the *Filter by kind* box to search for the term `HostedCluster`.
+It should return two values, click on the one that shows its version as *v1beta1*.
 +
 image::users/api_explore_hostedcluster.png[link=self, window=blank, width=100%]
 
