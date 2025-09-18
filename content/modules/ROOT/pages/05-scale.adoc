@@ -109,7 +109,9 @@ image::scale/cluster_node_pools.png[link=self, window=blank, width=100%]
 
 . Use the OpenShift Console Web Terminal
 [arabic]
-.. SSH to the bastion host once again if needed.
+.. On the upper-right of the OpenShift Console, click *>_*.
+.. Click *OpenShift command line terminal*.
+.. The terminal window opens.
 +
 image::scale/webterminal_start.png[link=self, window=blank, width=100%]
 
@@ -235,7 +237,8 @@ image::scale/no_resources_found.png[link=self, window=blank, width=100%]
 +
 image::scale/nodes_menu.png[link=self, window=blank, width=100%]
 
-. Wait patiently for the nodes to scale down (approximately 10 minutes) and then check again.
+. You need not wait for the nodes to scale down (approximately 10 minutes).
+Move on to the next step.
 +
 image::scale/nodes_menu_2.png[link=self, window=blank, width=100%]
 
