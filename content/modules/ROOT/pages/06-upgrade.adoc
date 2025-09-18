@@ -20,7 +20,7 @@ select the *Console URL*.
 +
 image::upgrade/cluster_details.png[link=self, window=blank, width=100%]
 
-. Log in with the *admin* administrative account using the password *openshift*.
+. Log in with the `admin` administrative account using the password `openshift`.
 +
 image::upgrade/hosted_cluster_login.png[link=self, window=blank, width=100%]
 
