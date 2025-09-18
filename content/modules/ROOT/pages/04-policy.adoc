@@ -36,6 +36,7 @@ In this lab you create *development* clusters - so our cluster set will be named
 === Create the cluster set
 
 . Create a namespace called *development-policies* for the cluster set *development* to be bound to.
+.. Return to the *hosting cluster console tab* in your browser.
 .. On the upper right, click the *Quick create* *+* button.
 .. Enter the following YAML to create the *development-policies* namespace.
 .. Click *Create*
@@ -232,6 +233,7 @@ You will use Policies to deploy OpenShift Operators on your clusters.
 Policies are be used to ensure presence (or absence) of Kubernetes Resources on target clusters.
 
 A *Policy* usually consists of three parts:
+
 . The *Policy* itself which outlines which resources should (or should not) be on the target clusters.
 . A *Placement* which selects the target clusters.
 . A *PlacementBinding*, binding the two together.
