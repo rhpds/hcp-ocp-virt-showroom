@@ -218,6 +218,7 @@ The pods here will consist of mostly replica sets for the processes that run the
 image::deploy/etcd_pods.png[link=self, window=blank, width=100%]
 
 . The details page for the pod appears.
+[arabic]
 .. Notice the *node* it is assigned to.
 The other etcd pods will show that they are assigned to different nodes through anti-affinity rules.
 .. There is also a *pod-disruption budget* set so that the maximum unavailable at any time is 1, or the cluster becomes unavailable.
@@ -281,10 +282,10 @@ When the cluster is fully deployed, start exploring.
 The next major section of the overview page provides details about the cluster deployed.
 
 . Examine the details about the *my-hosted-cluster*.
+[arabic]
 .. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*. +
 The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
-[arabic]
 .. Scroll down the page to cluster *Details*
 .. The *Control plane type* is NOT Hub, rather it is *Hosted*.
 .. *Status* of the cluster should eventually be *Ready*.
@@ -295,6 +296,7 @@ This can take some time to settle down.
 Be patient.
 
 . Note access information:
+[arabic]
 .. *cluster API address*, should you want to connect via the command line, or an application.
 .. *console URL*
 .. the *credentials*, which are conveniently hidden for security purposes.
@@ -302,11 +304,13 @@ Be patient.
 image::deploy/hosted_cluster_details.png[link=self, window=blank, width=100%]
 
 . To display the credentials:
+[arabic]
 .. Click the *eye icon*, it will provide the information for the *kubeadmin* user and a randomly generated password.
 +
 image::deploy/reveal_creds.png[link=self, window=blank, width=100%]
 
 . To access the console:
+[arabic]
 .. Click on the *copy icon next to the password* to save it to the clipboard.
 .. Click on the *Console URL* right above that.
 +
@@ -314,6 +318,7 @@ image::deploy/copy_password.png[link=self, window=blank, width=100%]
 
 . A new tab will open.
 The browser security certificate prompts will appear.
+[arabic]
 .. Click the *Advanced* button.
 .. Then the secondary warning, which differs from browser to browser.
 +
@@ -322,6 +327,7 @@ image::deploy/browser_security.png[link=self, window=blank, width=100%]
 NOTE: This usually must be done twice.
 
 . Once certificate prompts are bypassed, the login to the OpenShift console appears.
+[arabic]
 .. Enter the username `kubeadmin`.
 .. Paste the *password* from the clipboard.
 .. Click *Log in*.
@@ -329,6 +335,7 @@ NOTE: This usually must be done twice.
 image::deploy/hosted_cluster_login_prompt.png[link=self, window=blank, width=100%]
 
 . The OpenShift console home page appears, just as if logging into any other OpenShift cluster.
+[arabic]
 .. Notice that the *infrastructure provider is listed as KubeVirt*.
 .. Note that the environment was newly provisioned as there are *59 days left on a default self-support trial*.
 .. Also note that the *Update channel* is *Not available*.
