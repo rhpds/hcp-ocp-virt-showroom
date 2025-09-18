@@ -36,14 +36,12 @@ image::deploy/cluster_create_popup.png[link=self, window=blank, width=100%]
 
 . Your initial landing page will be on the ACM default view for All Clusters.
 Currently the only cluster being managed is the local cluster that we are running on.
-[arabic]
 .. If not, from the left bar click *Infrastructure -> Clusters*.
 .. Click on the *local-cluster* to find out more information about it.
 +
 image::deploy/acm_default_window.png[link=self, window=blank, width=100%]
 
 . The *Overview* tab for the local cluster will show:
-[arabic]
 .. The type of control plane: *Hub*
 .. Status of the environment: *Ready*
 .. Console URL for direct login: *Console URL*
@@ -54,7 +52,6 @@ image::deploy/acm_default_window.png[link=self, window=blank, width=100%]
 image::deploy/local_cluster_overview.png[link=self, window=blank, width=100%]
 +
 . Examine the Add-ons.
-[arabic]
 .. Click on the *Add-ons* tab.
 .. In the list you will see the *hypershift-addon* listed.
 This is required for the deployment of hosted control planes.
@@ -63,7 +60,6 @@ image::deploy/local_cluster_addons.png[link=self, window=blank, width=100%]
 
 . To use an infrastructure provider, credentials are required.
 Credentials for OpenShift Virtualization on local-cluster has been pre-populated for use in this lab.
-[arabic]
 .. Click on *Credentials* in the left-side menu.
 Note that there is a credential available called *kubevirt-secret*.
 .. Click on the *kubevirt-secret* credential.
@@ -71,7 +67,6 @@ Note that there is a credential available called *kubevirt-secret*.
 image::deploy/view_credentials.png[link=self, window=blank, width=100%]
 
 . The *kubevirt-secret* credential is displayed and contains:
-[arabic]
 .. A pull-secret which gives access to the OpenShift registry for cluster installation,
 .. A public ssh key from the bastion host which is useful in managing the hosted cluster once it's deployed.
 +
@@ -79,7 +74,6 @@ image::deploy/kubevirt_secret_details.png[link=self, window=blank, width=50%]
 
 . RHACM deploys and manages clusters by means of pods and data in OpenShift projects.
 Create a dedicated project on the local-cluster to manage the hosted clusters.
-[arabic]
 .. Click on the *All Clusters* menu item at the top.
 .. Select *local-cluster* from the drop down menu.
 +
@@ -96,7 +90,6 @@ image::deploy/create_project_details.png[link=self, window=blank, width=50%]
 
 . Cluster deployment is managed by RHACM, not the local-cluster.
 Return to RHACM console.
-[arabic]
 .. Click on the *local-cluster* menu item at the top.
 .. Select *All Clusters* from the drop-down menu.
 +
@@ -106,7 +99,6 @@ image::deploy/return_to_acm.png[link=self, window=blank, width=80%]
 == Deploy a hosted cluster
 
 . Begin the deployment process.
-[arabic]
 .. Click on the blue *Create cluster* button
 +
 image::deploy/create_cluster.png[link=self, window=blank, width=100%]
@@ -114,14 +106,12 @@ image::deploy/create_cluster.png[link=self, window=blank, width=100%]
 . There is a choice of infrastructure providers.
 Note that the Red Hat OpenShift Virtualization provider has the additional tag, *Saved Credentials*.
 If you had added credentials for other infrastructure providers, they would also be so tagged.
-[arabic]
 .. Click the tile for *Red Hat OpenShift Virtualization*.
 +
 image::deploy/infrastructure_provider.png[link=self, window=blank, width=100%]
 
 . All clusters provided by Red Hat OpenShift Virtualization are hosted control planes.
 The tile here called *Hosted* mentions the benefits of using hosted control planes to deploy your OpenShift cluster.
-[arabic]
 .. Click the *Hosted* tile.
 +
 image::deploy/control_plane_type_hosted.png[link=self, window=blank, width=50%]
@@ -133,22 +123,21 @@ Specific versions can be added, as well, for consistency of vetted versions acro
 +
 CAUTION: Be sure to select the *Release image #version 4.17.xx#*, so the cluster can be upgraded in a later module.
 +
-[arabic]
 .. *Infrastructure provider credential:* kubevirt-secret
 .. *Cluster name:* `my-hosted-cluster`
 .. *Cluster set:* default
 .. *Release image:* #OpenShift *4.17.xx*#
 .. *Etcd storage class:* ocs-external-storagecluster-ceph-rbd
 +
-CAUTION:
+.. Click the *YAML On* switch
+.. Change lines 27 through 31 (approximately) to match the following IP address ranges.
++
+[CAUTION]
 ====
-Network changes: This workshop platform is self-hosted, and the cluster and service networks that would ordinarily be used for the hosted cluster are used by the hosting cluster.
+Network changes: This workshop platform is self-hosted, and the cluster and service networks that would ordinarily be used for the hosted cluster pods are used by the hosting cluster.
 The YAML configuration of the cluster and service networks for the hosted cluster must be changed.
 The network defined below will be used for the _pods_ in the *my-hosted-cluster*, NOT the _nodes_ in the *my-hosted-cluster*.
 ====
-+
-.. Click the *YAML On* switch
-.. Change lines 27 through 31 (approximately) to match the following IP address ranges.
 +
 [,yaml,role=execute,subs="attributes"]
 ----
@@ -165,7 +154,6 @@ image::deploy/create_cluster_details.png[link=self, window=blank, width=100%]
 
 . The *Create cluster - Node pools* window appears.
 Node pools organize are the virtual machines that make up the compute node pool.
-[arabic]
 .. *Node pool name:* `my-node-pool`
 .. *Node pool replica:* 2
 .. *Core:* 2
@@ -177,14 +165,12 @@ image::deploy/create_node_pools.png[link=self, window=blank, width=100%]
 
 . The *Create cluster - Storage mappings* window appears.
 This lab does not require any additional or custom storage, so we will not use any storage mappings.
-[arabic]
 .. Click *Next*.
 +
 image::deploy/create_storage_mappings.png[link=self, window=blank, width=50%]
 
 . The *Create cluster - Review* window appears.
 Review the deployment configuration of the *Cluster details* and the *Node pools* that you have configured.
-[arabic]
 .. Examine the configuration and click the *Create* button to begin provisioning the hosted cluster.
 +
 image::deploy/create_cluster_review.png[link=self, window=blank, width=100%]
@@ -207,7 +193,6 @@ The foregoing Introductory module indicated that in a hosted control plane envir
 All of the control plane processes run within containers, within a project on the cluster.
 
 . Explore the control plane pods.
-[arabic]
 .. At bottom of the *Control plane status* section, there is a link to *Control plane pods*.
 Click on the *Control plane pods* link.
 +
@@ -215,7 +200,6 @@ image::deploy/control_plane_pods.png[link=self, window=blank, width=100%]
 
 . A new browser tab opens displaying the pods in the project *clusters-my-hosted-cluster*.
 The pods here will consist of mostly replica sets for the processes that run the hosted cluster control plane.
-[arabic]
 .. Search for pods by *Label*, indicating `app=etcd`.
 .. Notice that they are configured as *StatefulSets*.
 .. Click the *etcd-0* pod to details.
@@ -223,7 +207,6 @@ The pods here will consist of mostly replica sets for the processes that run the
 image::deploy/etcd_pods.png[link=self, window=blank, width=100%]
 
 . The details page for the pod appears.
-[arabic]
 .. Notice the *node* it is assigned to.
 The other etcd pods will show that they are assigned to different nodes through anti-affinity rules.
 .. There is also a *pod-disruption budget* set so that the maximum unavailable at any time is 1, or the cluster becomes unavailable.
@@ -236,7 +219,6 @@ image::deploy/etcd0_details.png[link=self, window=blank, width=100%]
 NOTE: The virtual machines are likely not started yet.  Please be patient.
 
 . Now examine the virtual machines created by this deployment of a hosted cluster.
-[arabic]
 .. Click the browser *back button* to return to the list of pods available in the *clusters-my-hosted-cluster* project.
 .. Delete the label filter for *etcd-0* pod by clicking the *x*.
 .. Enter a new label filter: `kubevirt.io=virt-launcher`
@@ -247,7 +229,6 @@ NOTE: The virtual machines are likely not started yet.  Please be patient.
 image::deploy/nodepool_pods.png[link=self, window=blank, width=100%]
 
 . Examine the *VirtualMachineInstance* pods.
-[arabic]
 .. *Click on one of the pods* to bring up its detail page.
 .. Notice the *node* that it is assigned to.
 .. Notice the *pod-disruption budget*
@@ -257,12 +238,10 @@ image::deploy/nodepool_pods.png[link=self, window=blank, width=100%]
 image::deploy/vmi_pods.png[link=self, window=blank, width=100%]
 
 . Once done exploring the pods in the *clusters-my-hosted-cluster* project
-[arabic]
 .. Close that browser tab to return to the *my-hosted-cluster - Overview*.
 +
 . The provisioning process also deploys virtual machines to implement the node pool.
 While the cluster is provisioning, watch how virtual machines are deployed.
-[arabic]
 .. On the left, click *Infrastructure -> Virtual machines*.
 .. They will each have a unique name, prefixed by the node pool name.
 .. Ideally, they will be deployed on different Nodes, indicated by the numeric suffix in the *worker-cluster-xxxxx-N* name.
@@ -273,7 +252,6 @@ Note that this pod IP is in the CIDR network "10.136.0/16" that you set at clust
 image::deploy/acm_virtual_machines.png[link=self, window=blank, width=100%]
 
 . The *Virtual machines* page appears.
-[arabic]
 .. Note how some links are marked with a box-arrow, like *Details* Launch, which will open a new browser tab and take you to the local-cluster's OpenShift Console details about the virtual machine.
 .. Note also the *Conditions* of the virtual machine.
 This one is *Ready* and indicates some of its features, like "LiveMigratable."
@@ -287,7 +265,6 @@ When the cluster is fully deployed, start exploring.
 The next major section of the overview page provides details about the cluster deployed.
 
 . Examine the details about the *my-hosted-cluster*.
-[arabic]
 .. Return to the *Cluster overview* page by clicking *Infrastructure -> Clusters -> my-hosted-cluster*. +
 The page presents information about the cluster itself, including how to login, the node-pools where application workloads will run, and the pods that support the control plane.
 Note the following details about the cluster:
@@ -301,7 +278,6 @@ This can take some time to settle down.
 Be patient.
 
 . Note access information:
-[arabic]
 .. *cluster API address*, should you want to connect via the command line, or an application.
 .. *console URL*
 .. the *credentials*, which are conveniently hidden for security purposes.
@@ -309,13 +285,11 @@ Be patient.
 image::deploy/hosted_cluster_details.png[link=self, window=blank, width=100%]
 
 . To display the credentials:
-[arabic]
 .. Click the *eye icon*, it will provide the information for the *kubeadmin* user and a randomly generated password.
 +
 image::deploy/reveal_creds.png[link=self, window=blank, width=100%]
 
 . To access the console:
-[arabic]
 .. Click on the *copy icon next to the password* to save it to the clipboard.
 .. Click on the *Console URL* right above that.
 +
@@ -323,7 +297,6 @@ image::deploy/copy_password.png[link=self, window=blank, width=100%]
 
 . A new tab will open.
 The browser security certificate prompts will appear.
-[arabic]
 .. Click the *Advanced* button.
 .. Then the secondary warning, which differs from browser to browser.
 +
@@ -332,7 +305,6 @@ image::deploy/browser_security.png[link=self, window=blank, width=100%]
 NOTE: This usually must be done twice.
 
 . Once certificate prompts are bypassed, the login to the OpenShift console appears.
-[arabic]
 .. Enter the username `kubeadmin`.
 .. Paste the *password* from the clipboard.
 .. Click *Log in*.
@@ -340,7 +312,6 @@ NOTE: This usually must be done twice.
 image::deploy/hosted_cluster_login_prompt.png[link=self, window=blank, width=100%]
 
 . The OpenShift console home page appears, just as if logging into any other OpenShift cluster.
-[arabic]
 .. Notice that the *infrastructure provider is listed as KubeVirt*.
 .. Note that the environment was newly provisioned as there are *59 days left on a default self-support trial*.
 .. Also note that the *Update channel* is *Not available*.
@@ -350,7 +321,6 @@ You will address this in the Upgrade the Hosted Cluster module.
 image::deploy/hosted_cluster_console_home.png[link=self, window=blank, width=100%]
 
 . Change browser tabs to the *All clusters* page, and view again the *my-hosted-cluster*.
-[arabic]
 .. Scroll down the page to the *Status* section
 .. This is a summary describing the *number of nodes* and *applications* currently running in the cluster.
 .. Click on the *large number above applications*
@@ -358,7 +328,6 @@ image::deploy/hosted_cluster_console_home.png[link=self, window=blank, width=100
 image::deploy/hosted_cluster_status.png[link=self, window=blank, width=100%]
 
 . Examine all the applications currently running in the cluster.
-[arabic]
 .. A page appears that shows *all of the apps* currently running in the cluster.
 +
 image::deploy/hosted_cluster_applications.png[link=self, window=blank, width=100%]
@@ -376,7 +345,6 @@ Now examine the nodes in the node pool and gather basic information about their 
 Two were configured during the deployment.
 
 . Navigate to the node pools and view a node.
-[arabic]
 .. From the *my-hosted-cluster* overview page, click on the tab for *nodes* at the top.
 .. Click on the *first cluster node* to explore it further.
 +
@@ -387,7 +355,6 @@ Convenient!
 .. Close the browser tab to return to the *my-hosted-cluster - Overview*.
 
 . Examine the node pools.
-[arabic]
 .. Just in case you're lost - on the *Infrastructure -> Clusters -> my-hosted-cluster* page, scroll down until you see the *Cluster node pools* section.
 .. Then click on the *three-dot* menu on the right and select *Manage node pool*.
 .. Scroll about halfway down the page, near the *Control plane pods* link, and the *Cluster node pools* section.
@@ -397,7 +364,6 @@ Convenient!
 image::deploy/manage_node_pool.png[link=self, window=blank, width=100%]
 
 . You will be prompted with a pop-up window to *Manage node pool* where you can manually scale the node pool to more than 2 nodes.
-[arabic]
 .. *Close this window* when you are done viewing it.
 +
 image::deploy/dont_scale_up_nodepool.png[link=self, window=blank, width=100%]
