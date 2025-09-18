@@ -140,7 +140,12 @@ CAUTION: Be sure to select the *Release image #version 4.17.xx#*, so the cluster
 .. *Release image:* #OpenShift *4.17.xx*#
 .. *Etcd storage class:* ocs-external-storagecluster-ceph-rbd
 +
-CAUTION: Network changes: This workshop platform is self-hosted, and the cluster and service networks that would ordinarily be used for the hosted cluster are used by the hosting cluster. The YAML configuration of the cluster and service networks for the hosted cluster must be changed.
+CAUTION:
+====
+Network changes: This workshop platform is self-hosted, and the cluster and service networks that would ordinarily be used for the hosted cluster are used by the hosting cluster.
+The YAML configuration of the cluster and service networks for the hosted cluster must be changed.
+The network defined below will be used for the _pods_ in the *my-hosted-cluster*, NOT the _nodes_ in the *my-hosted-cluster*.
+====
 +
 .. Click the *YAML On* switch
 .. Change lines 27 through 31 (approximately) to match the following IP address ranges.
